@@ -1,0 +1,23 @@
+# simulation:
+tf: 10.0
+dt: 0.01
+pos0_deg: 0.0
+vel0: 0.0
+
+# control:
+Q: [1.0, 1.0]
+T: 100
+reference_type: 'cos'
+amplitude_deg: 60
+frequency_hz: 1/5
+k_ref: 0
+# k_ref: 0
+c: 1.0
+
+# plotting
+deg: True
+legend: True
+fontsize: 12
+fig_size: (800, 600)
+save: True
+image_type: 'pdf'
