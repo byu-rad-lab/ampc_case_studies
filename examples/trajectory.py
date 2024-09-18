@@ -25,11 +25,12 @@ class Ramp:
 
 
 class Sinusoidal:
-    def __init__(self, amplitude: float, frequency_hz: float,
+    def __init__(self, amplitude: float, frequency_hz: float, offset: float,
                  T: float, dt: float, method = 'sin') -> np.ndarray:
         self.A = amplitude
         hz2rad = 2*np.pi
         self.w = frequency_hz * hz2rad
+        self.offset = offset
         self.T = T
         self.dt = dt
         self.method = method
@@ -37,10 +38,10 @@ class Sinusoidal:
     def __call__(self, t: float) -> np.ndarray:
         horizon = t+self.dt + np.arange(self.T)*self.dt
         if self.method == 'cos':
-            pos_ref = self.A * (1 - np.cos(self.w*horizon))
+            pos_ref = self.A * (1 - np.cos(self.w*horizon)) + self.offset
             vel_ref = self.w * self.A * np.sin(self.w*horizon)
         else: # sin
-            pos_ref = self.A * np.sin(self.w*horizon)
+            pos_ref = self.A * np.sin(self.w*horizon)  + self.offset
             vel_ref = self.w * self.A * np.cos(self.w*horizon)
         traj = np.empty(2*self.T)
         traj[0::2] = pos_ref

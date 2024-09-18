@@ -131,13 +131,14 @@ class Plotter:
         ax: plt.Axes = self.st_ax
         ax.plot(time[:-1], st_hist, *args, **kwargs)
 
-    def plotMinCosts(self, k_list: np.ndarray, min_costs: np.ndarray, min_c_list: np.ndarray):
+    def plotMinCosts(self, k_list: np.ndarray, min_costs: np.ndarray,
+                     min_c_list: np.ndarray, *args, **kwargs):
         if not self.has_mincosts_data:
             self._setupMinCostsPlot()
         ax: plt.Axes = self.mincost_ax[0]
-        ax.plot(k_list, min_costs)
+        ax.plot(k_list, min_costs, *args, **kwargs)
         ax: plt.Axes = self.mincost_ax[1]
-        ax.plot(k_list, min_c_list, '.')
+        ax.plot(k_list, min_c_list, '.', *args, **kwargs)
 
     def plotCvK(self, c_list: np.ndarray, k_list: np.ndarray, costs: np.ndarray):
         if not self.has_cvk_data:
@@ -147,38 +148,55 @@ class Plotter:
             ax.plot(k_list, costs.T[i], label=f'c = {c:.1f}')
         ax: plt.Axes = self.cvk_ax[1]
         for i,k in enumerate(k_list):
-            ax.plot(c_list, costs[i], label=f'k = {k:.1f}')
+            ax.plot(c_list, costs[i], label=f'k = {k:.0f}')
 
     def show(self):
+        leg_fontsize = self.fontsize - 4
             # self.vel_ax.legend()
         # self.window.pause(0.0)
         if self.has_cost_data:
             if self.legend and len(self.cost_ax.get_lines()) > 1:
-                self.cost_ax.legend(fontsize=self.fontsize-1)
+                self.cost_ax.legend(fontsize=leg_fontsize)
             self.cost_fig.tight_layout()
         if self.has_state_data:
-            self.pos_fig.tight_layout()
-            self.att_fig.tight_layout()
-            self.vel_fig.tight_layout()
-            if self.legend and len(self.pos_ax[0].get_lines()) > 1:
-                self.pos_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-1)
-                self.att_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-1)
-                self.vel_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-1)
+            if self.legend and len(self.pos_ax[0].get_lines()) > 4:
+                self.pos_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+                self.att_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+                self.vel_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+                self.pos_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
+                self.att_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
+                self.vel_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
+            elif self.legend and len(self.pos_ax[0].get_lines()) > 1:
+                self.pos_ax[0].legend(fontsize=leg_fontsize)
+                self.att_ax[0].legend(fontsize=leg_fontsize)
+                self.vel_ax[0].legend(fontsize=leg_fontsize)
+                self.pos_fig.tight_layout()
+                self.att_fig.tight_layout()
+                self.vel_fig.tight_layout()
         if self.has_input_data:
-            self.u_fig.tight_layout()
-            if self.legend and len(self.u_ax[0].get_lines()) > 1:
-                self.u_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-1)
+            if self.legend and len(self.u_ax[0].get_lines()) > 4:
+                self.u_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+                self.u_fig.subplots_adjust(left=0.1, right=0.8, bottom=0.09, hspace=0.45)
+            elif self.legend and len(self.u_ax[0].get_lines()) > 1:
+                self.u_ax[0].legend(fontsize=leg_fontsize)
+                self.u_fig.tight_layout()
         if self.has_solvetime_data:
             ax: plt.Axes = self.st_ax
-            if self.legend and len(ax.get_lines()) > 1:
-                ax.legend(fontsize=self.fontsize-1)
-            self.st_fig.tight_layout()
+            if self.legend and len(ax.get_lines()) > 4:
+                ax.legend(fontsize=leg_fontsize)
+                self.st_fig.subplots_adjust(left=0.1, bottom=0.1)
+            elif self.legend and len(ax.get_lines()) > 1:
+                ax.legend(fontsize=leg_fontsize)
+                self.st_fig.tight_layout()
         if self.has_mincosts_data:
-            self.mincost_fig.tight_layout()
             if self.legend:
+                ax: list[plt.Axes] = self.mincost_ax
+                ax[0].legend(fontsize=leg_fontsize)
+                ax[1].legend(fontsize=leg_fontsize)
                 ax: list[plt.Axes] = self.cvk_ax
-                ax[0].legend(fontsize=self.fontsize-1)
-                ax[1].legend(fontsize=self.fontsize-1)
+                ax[0].legend(fontsize=leg_fontsize)
+                ax[1].legend(fontsize=leg_fontsize)
+            self.mincost_fig.tight_layout()
         self.window.show()
 
     def savePlots(self, path: str, image_type: str='svg'):

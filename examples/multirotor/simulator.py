@@ -39,20 +39,30 @@ class Simulator:
         settings.warm_start = False
         self.mpc.initSolver(settings)
 
-    def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int, u_prev: np.ndarray, linearize: bool):
+    def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
+                           u_prev: np.ndarray, method: str):
         # xr = xr_traj[self.n*self.k:self.n*(self.k+1)]
         xr = xr_traj[self.k]
-        if linearize:
-            mask = np.array([0,0,0,0,0,1,0,0,0])
-        else:
+        if method == 'uk':
             mask = np.ones_like(x)
+            up = u_prev
+        elif method == 'ueq':
+            mask = np.ones_like(x)
+            up = np.array([self.sys.s_eq, 0,0,0])
+        elif method == 'xeq':
+            mask = np.array([0,0,0,0,0,1,0,0,0])
+            up = u_prev
+        elif method == 'lin':
+            mask = np.array([0,0,0,0,0,1,0,0,0])
+            up = np.array([self.sys.s_eq, 0,0,0])
+        else:
+            # mask = np.array([0,0,0,0,0,1,1,1,1])
+            raise ValueError('Unrecognized lin/aff method')
         xp = (1-c)*x*mask + c*xr*mask
-        # up = u_prev
-        up = np.array([self.sys.s_eq, 0,0,0])
         model = self.sys.affinize(xp, up)
         self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt)
 
-    def run(self, x0: np.ndarray, c: int, linearize: bool=False):
+    def run(self, x0: np.ndarray, c: int, method: str='uk'):
         x = x0.copy()
         x_hist = [x.copy()]
         xr_hist = [self.getRefTrajectory(0)[0].copy()]
@@ -66,8 +76,8 @@ class Simulator:
             start = now()
             xr_traj = self.getRefTrajectory(t)
             self.mpc.setDesiredStateTrajectory(xr_traj.flatten())
-            self.updateControlModel(x, xr_traj, c, u_star, linearize)
-            u_star, solved = self.mpc.calcNextInput(x)
+            self.updateControlModel(x, xr_traj, c, u_star, method)
+            _, solved = self.mpc.calcNextInput(x, u_star)
             solve_times.append(now() - start)
             if not solved: print(':(')
             u_hist.append(u_star.copy())
@@ -78,6 +88,8 @@ class Simulator:
             xr_hist.append(xr.copy())
 
             error = xr - x
+            # test_Q = self.Q * np.array([1,1,1, 0,0,1, 0,0,0])
+            # cost_integral += np.sqrt(test_Q @ error**2)
             cost_integral += np.sqrt(self.Q @ error**2)
 
         x_hist = np.array(x_hist)

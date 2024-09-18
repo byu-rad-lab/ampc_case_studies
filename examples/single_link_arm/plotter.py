@@ -35,8 +35,13 @@ class Plotter:
             self.pos_ax.set_ylabel(r'$\theta$ (rad)', fontsize=self.fontsize)
         self.vel_ax.set_ylabel(r'$\dot{\theta}$ (rad/s)', fontsize=self.fontsize)
         self.vel_ax.set_xlabel('time (s)', fontsize=self.fontsize)
-        self.x_fig.tight_layout()
-        self.window.addTab('States', self.x_fig)
+        # self.x_fig.tight_layout()
+        spacing = FigureSpacing()
+        # spacing.right = 0.835
+        spacing.bottom = 0.090
+        spacing.left = 0.090
+        spacing.top = 0.970
+        self.window.addTab('States', self.x_fig, spacing)
         self.state_data = True
 
     def _setupInputPlot(self):
@@ -84,20 +89,29 @@ class Plotter:
         # self.window.pause(0.0)
         if self.cost_data:
             if self.legend and len(self.cost_ax.get_lines()) > 1:
-                print('legend')
                 self.cost_ax.legend()
             self.cost_fig.tight_layout()
         if self.state_data:
-            if self.legend:
-                print('legend')
-                self.pos_ax.legend(loc=2, bbox_to_anchor=(1,1))
-            # self.x_fig.tight_layout()
+            if self.legend and len(self.pos_ax.get_lines()) > 10:
+                self.pos_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-4)
+                self.x_fig.subplots_adjust(right=0.835)
+            elif self.legend and len(self.pos_ax.get_lines()) > 1:
+                self.pos_ax.legend(fontsize=self.fontsize-4)
+                self.x_fig.tight_layout()
         if self.input_data:
-            # xlabel = self.u_ax.get_xlabel()
-            # self.u_ax.set_xlabel(xlabel, fontsize=18)
-            self.u_fig.tight_layout()
+            if self.legend and len(self.u_ax.get_lines()) > 10:
+                self.u_fig.legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-4)
+                self.u_fig.subplots_adjust(right=0.835)
+            elif self.legend and len(self.u_ax.get_lines()) > 1:
+                self.u_ax.legend(fontsize=self.fontsize-4)
+                self.u_fig.tight_layout()
         if self.solve_time_data:
-            self.st_fig.tight_layout()
+            if self.legend and len(self.st_ax.get_lines()) > 10:
+                self.st_fig.legend(loc=2, bbox_to_anchor=(1,1), fontsize=self.fontsize-4)
+                self.st_fig.subplots_adjust(right=0.835)
+            elif self.legend and len(self.st_ax.get_lines()) > 1:
+                self.st_ax.legend(fontsize=self.fontsize-4)
+                self.st_fig.tight_layout()
         self.window.show()
 
     def savePlots(self, path: str, image_type: str='pdf'):

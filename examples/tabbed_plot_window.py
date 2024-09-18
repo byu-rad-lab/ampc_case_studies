@@ -86,8 +86,8 @@ class TabbedPlotWindow:
         # kill the program with ctrl+c
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         # run the application
-        for fig in self.figure_handles:
-            fig.tight_layout()
+        # for fig in self.figure_handles:
+        #     fig.tight_layout()
         self.app.exec_()
 
     def pause(self, delay_seconds: float):

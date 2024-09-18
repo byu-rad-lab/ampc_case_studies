@@ -19,6 +19,8 @@ class Simulator:
         self.getRefTrajectory = xref_gen
         # self.c = 0.0
         self.k = k_ref
+        self.mpc = None
+        # self._setupMPC()
 
     def _setupMPC(self):
         self.mpc = ampc.ImplicitMPC(self.n, self.m, self.T, self.p)
@@ -31,19 +33,23 @@ class Simulator:
         self.mpc.setStateWeights(self.Q)
         xr = np.array([np.radians(90), 0.0])
         self.mpc.setDesiredState(xr)
-        self.mpc.initSolver()
+        settings = ampc.OSQPSettings()
+        # settings.warm_start = True
+        # settings.eps_dual_inf = 1e-3
+        # settings.eps_prim_inf = 1e-3
+        self.mpc.initSolver(settings)
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int, linearize: bool):
         xr = xr_traj[2*self.k:2*(self.k+1)]
         if linearize:
             mask = np.array([1, 0])
-            # c = 1.0
+            # c = 0.0
         else:
             mask = np.ones_like(x)
         xp = (1-c)*x*mask + c*xr*mask
         up = np.zeros(self.m) + self.sys.getEquilibriumTorque(xp[0])
         model = self.sys.affinize(xp, up)
-        self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt)
+        self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt, 1e-8)
 
     def run(self, x0: np.ndarray, c: int, linearize: bool=False):
         x = x0.copy()
