@@ -17,7 +17,7 @@ def main():
     dt = 0.01
     x0 = np.array([np.radians(0), 0.0])
     T = 100
-    Q = np.array(args.weights) if len(args.weights) != 0 else np.ones(2)
+    Q = np.array(args.weights) if args.weights is not None else np.ones(2)
     assert len(Q) == 2
     print(f'{Q = }')
 
@@ -40,7 +40,7 @@ def main():
         # Q = np.array([1.0, 1.0])
         # Q = np.array([1.0, 0.1])
         # Q = np.array([1.0, 0.01])
-        default_params = [90., 4.]
+        default_params = [60., 2.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
         amplitude = np.radians(params[0])

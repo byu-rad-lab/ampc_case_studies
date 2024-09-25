@@ -1,57 +1,49 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from examples.single_link_arm.plotter import Plotter
-import yaml
-import argparse
+from parsing import getParsedArgs_plot
 
 
-parser = argparse.ArgumentParser(description='Run AMPC simulation analysis.')
-parser.add_argument('dir', nargs='?', type=str, default='/tmp/ampc24_paper/',
-                    help='Specify path to directory from which to load data.')
-args = parser.parse_args()
+def plot(load_dir: str):
+    ## Params
+    deg = True
+    legend = True
+    fontsize = 14
+    figsize = (1000,800)
+    save = True
+    img_types = ['svg', 'pdf']
 
-if not args.dir[-1] == '/':
-    args.dir += '/'
-print('Save path:', args.dir)
+    ## Load Data
+    k_list = np.loadtxt(load_dir + 'k_list.txt')
+    c_list = np.loadtxt(load_dir + 'c_list.txt')
 
-## Load Parameters
-param_path = args.dir + 'params.yaml'
-with open(param_path, 'r') as file:
-    params = yaml.full_load(file)
-    c_list = params['c']
-    deg = params['deg']
-    legend = params['legend']
-    fontsize = params['fontsize']
-    fig_size = params['fig_size']
-    if type(fig_size) == str:
-        fig_size = eval(fig_size)
-    save = params['save']
-    image_type = params['image_type']
+    time = np.loadtxt(load_dir + 'time.txt')
+    costs = np.loadtxt(load_dir + 'costs.txt')
+    xtraj_hist = np.loadtxt(load_dir + 'states.txt').reshape(len(c_list),-1,2)
+    xr_hist = np.loadtxt(load_dir + 'ref_states.txt')
+    utraj_hist = np.loadtxt(load_dir + 'inputs.txt').reshape(len(c_list),-1)
+    # solve_times = np.loadtxt(load_dir + 'solve_times.txt')
 
-## Load Data
-time = np.loadtxt(args.dir + 'time.txt')
-costs = np.loadtxt(args.dir + 'costs.txt')
-xtraj_hist = np.loadtxt(args.dir + 'states.txt')
-xr_hist = np.loadtxt(args.dir + 'ref_states.txt')
-utraj_hist = np.loadtxt(args.dir + 'inputs.txt')
-solve_times = np.loadtxt(args.dir + 'solve_times.txt')
+    plotter = Plotter(time, legend, deg, fontsize, figsize)
 
-
-plotter = Plotter(time, legend, deg, fontsize, fig_size)
-
-if type(c_list) == float:
-    plotter.plotStateLine(xtraj_hist, label='state')
-    plotter.plotStateLine(xr_hist, 'r--', label='ref')
-    plotter.plotInputLine(utraj_hist)
-    plotter.plotSolveTimes(solve_times)
-elif type(c_list) == list:
-    xtraj_hist = xtraj_hist.reshape((len(c_list), -1, 2))
-    plotter.plotCosts(c_list, costs)
-    for i in range(len(c_list)):
-        plotter.plotStateLine(xtraj_hist[i], label=f'c = {c_list[i]:.1f}')
+    for i,k in enumerate(k_list):
+        plotter.plotStateLine(xtraj_hist[i], label=f'{k = }')
+        plotter.plotInputLine(utraj_hist[i], label=f'{k = }')
     plotter.plotStateLine(xr_hist, 'r--', label='ref')
 
-plotter.show()
+    min_idx = np.argmin(costs)
+    print(f'Min cost: {costs[min_idx]} @ k = {k_list[min_idx]}, c = {c_list[min_idx]:.1f}')
 
-if save:
-    plotter.savePlots(args.dir, image_type)
+    plotter.show()
+
+    for ext in img_types:
+        plotter.savePlots(load_dir, image_type=ext)
+    return
+
+
+if __name__ == '__main__':
+    load_dir = '/tmp/ampc24/arm/tracking/'
+    desc = 'Plot selected tracking for single link arm'
+    args = getParsedArgs_plot(load_dir, desc)
+    plot(args.dir)

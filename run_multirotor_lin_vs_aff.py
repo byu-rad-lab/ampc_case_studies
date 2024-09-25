@@ -3,7 +3,6 @@ from tqdm import tqdm
 
 from examples.multirotor.simulator import Simulator
 import examples.multirotor.trajectory as traj
-# from examples.multirotor.plotter import Plotter
 import plot_multirotor_lin_vs_aff as plotter
 from parsing import getParsedArgs_run
 
@@ -74,8 +73,11 @@ def main():
         traj_fn.setYawMode(traj.Mode.STEP, [x0[5]])
         print(f'ref = ramp3: n/e/d vel = {vel:.1f}')
 
+    if args.weights is not None:
+        Q = np.array(args.weights)
+        print('Q =', Q)
+
     k_ref = 0
-    # k_ref = np.arange(T)
     c_list = np.linspace(0,1,11)
     # c_list = [0.0]*2
 
