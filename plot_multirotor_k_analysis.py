@@ -10,7 +10,6 @@ def plot(load_dir: str):
     legend = True
     fontsize = 14
     figsize = (1000,850)
-    save = True
     img_types = ['svg', 'pdf']
 
     ## Load Data

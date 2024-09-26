@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# from examples.single_link_arm.plotter import Plotter
 from examples.tabbed_plot_window import TabbedPlotWindow
 from parsing import getParsedArgs_plot
 
@@ -61,7 +60,7 @@ def plot(load_dir: str):
     print(f'aff improvement: {100*(1-aff_min/lin_min):.2f}%')
 
     if len(k_list) > 1:
-        pw = TabbedPlotWindow('K-Analysis', figsize)#, fontsize)
+        pw = TabbedPlotWindow('K-Analysis', figsize)
         leg_fontsize = fontsize-4
         fig1,ax = plt.subplots(2)
         a: plt.Axes = ax[0]
@@ -82,7 +81,6 @@ def plot(load_dir: str):
         for i,c in enumerate(c_list):
             a.plot(k_list, aff_all_costs.T[i], label=f'aff: {c = :.1f}')
             a.plot(k_list, lin_all_costs.T[i], label=f'lin: {c = :.1f}')
-        # a.plot(k_list, all_costs)
         a.set_xlabel('k', fontsize=fontsize)
         a.set_ylabel(r'$\int$cost', fontsize=fontsize)
         if len(a.get_lines()) < 15:
@@ -91,7 +89,6 @@ def plot(load_dir: str):
         for i,k in enumerate(k_list):
             a.plot(c_list, aff_all_costs[i], label=f'aff: {k = }')
             a.plot(c_list, lin_all_costs[i], label=f'lin: {k = }')
-        # a.plot(k_list, all_costs)
         a.set_xlabel('c', fontsize=fontsize)
         a.set_ylabel(r'$\int$cost', fontsize=fontsize)
         if len(a.get_lines()) < 15:

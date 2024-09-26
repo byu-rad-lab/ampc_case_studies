@@ -1,25 +1,27 @@
 import numpy as np
 from time import time as now
+from typing import Callable
+
 from ..multirotor.dynamics import Multirotor
 from .. import ampc_py as ampc
-from typing import Callable
+from . import trajectory as traj
 
 
 class Simulator:
     n,m = 9,4
-    sys = Multirotor(equilibrium_throttle=0.5, damping=0.1, mode=Multirotor.VelocityMode.INERTIAL)
+    sys = Multirotor(equilibrium_throttle=0.5, damping=0.1,
+                     mode=Multirotor.VelocityMode.INERTIAL)
     p = 5
 
-    def __init__(self, tf: float, dt: float, T: int, Q: np.ndarray, xref_gen: Callable, k_ref: int):
+    def __init__(self, tf: float, dt: float, T: int, x0: np.ndarray,
+                 Q: np.ndarray, xref_gen: Callable):
         self.tf = tf
         self.dt = dt
         self.T = T
+        self.x0 = x0.copy()
         self.time = np.arange(0.0, tf+self.dt, self.dt)
         self.Q = Q.copy()
         self.getRefTrajectory = xref_gen
-        # self.c = 0.0
-        self.k = k_ref
-        # self._setupMPC()
 
     def _setupMPC(self):
         self.mpc = ampc.ImplicitMPC(self.n, self.m, self.T, self.p)
@@ -36,13 +38,12 @@ class Simulator:
         self.mpc.setDesiredState(xr)
 
         settings = ampc.OSQPSettings()
-        settings.warm_start = False
+        # settings.warm_start = False
         self.mpc.initSolver(settings)
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
-                           u_prev: np.ndarray, method: str):
-        # xr = xr_traj[self.n*self.k:self.n*(self.k+1)]
-        xr = xr_traj[self.k]
+                           k: int, u_prev: np.ndarray, method: str):
+        xr = xr_traj[k]
         if method == 'uk':
             mask = np.ones_like(x)
             up = u_prev
@@ -62,8 +63,8 @@ class Simulator:
         model = self.sys.affinize(xp, up)
         self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt)
 
-    def run(self, x0: np.ndarray, c: int, method: str='uk'):
-        x = x0.copy()
+    def run(self, c: int, k: int=0, method: str='uk'):
+        x = self.x0.copy()
         x_hist = [x.copy()]
         xr_hist = [self.getRefTrajectory(0)[0].copy()]
         u_hist = []
@@ -76,7 +77,7 @@ class Simulator:
             start = now()
             xr_traj = self.getRefTrajectory(t)
             self.mpc.setDesiredStateTrajectory(xr_traj.flatten())
-            self.updateControlModel(x, xr_traj, c, u_star, method)
+            self.updateControlModel(x, xr_traj, c, k, u_star, method)
             _, solved = self.mpc.calcNextInput(x, u_star)
             solve_times.append(now() - start)
             if not solved: print(':(')
@@ -98,8 +99,77 @@ class Simulator:
         return cost_integral, x_hist, xr_hist, u_hist, solve_times
 
 
+def getSimulator(args):
+    tf = 10.0
+    dt = 0.02
+    T = 100
+    x0 = np.array([0,0,-20., 0,0,0, 0,0,0])
+
+    traj_fn = traj.EulerStateTrajectory(T, dt)
+    if args.ref_type == 'step':
+        Q = np.array([1,1,100, 1,1,1, 2,2,2.], dtype=np.float64)
+        default_params = [1.0, 2.0]
+        params = args.params if len(args.params) != 0 else default_params
+        assert len(params) == len(default_params)
+        pos_step = params[0]
+        yaw_step = np.pi / params[1]
+        traj_fn.setNorthMode(traj.Mode.STEP, [x0[0] + pos_step])
+        traj_fn.setEastMode(traj.Mode.STEP, [x0[1] + pos_step])
+        traj_fn.setDownMode(traj.Mode.STEP, [x0[2] - pos_step])
+        traj_fn.setYawMode(traj.Mode.STEP, [x0[5] + yaw_step])
+        print(f'ref = step: pos amplitude = {pos_step:.1f}, yaw amplitude = pi/{params[1]:.1f}')
+    elif args.ref_type == 'wavy':
+        # Q = np.array([1,1,10, 1,1,1, 1,1,1.], dtype=np.float64)
+        # Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64)
+        Q = np.array([1,1,10, 1,1,1, 1,1,1.], dtype=np.float64)
+        default_params = [1., 5., 2., 6.]
+        params = args.params if len(args.params) != 0 else default_params
+        assert len(params) == len(default_params)
+        amp = params[0]
+        period = params[1]
+        evel = params[2]
+        yvel = np.pi/params[3]
+        traj_fn.setNorthMode(traj.Mode.SINE, [amp, period, 0, x0[0]])
+        traj_fn.setEastMode(traj.Mode.LINE, [evel, x0[1]])
+        traj_fn.setDownMode(traj.Mode.SINE, [amp, period, 0.0, x0[2]])
+        traj_fn.setYawMode(traj.Mode.LINE, [yvel, x0[5]])
+        print(f'ref = wavy: n/d amp = {amp:.1f}, n/d period = {period:.1f}, ', end='')
+        print(f'e vel = {evel:.1f}, y vel = pi/{params[3]:.1f}')
+    elif args.ref_type == 'ramp1':
+        # Q = np.array([1,1,10, 1,1,1, 1,1,1.], dtype=np.float64)
+        Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64)
+        default_params = [5.0]
+        params = args.params if len(args.params) != 0 else default_params
+        assert len(params) == len(default_params)
+        vel = params[0]
+        traj_fn.setNorthMode(traj.Mode.STEP, [x0[0]])
+        traj_fn.setEastMode(traj.Mode.LINE, [vel, x0[1]])
+        traj_fn.setDownMode(traj.Mode.STEP, [x0[2]])
+        traj_fn.setYawMode(traj.Mode.STEP, [x0[5]])
+        print(f'ref = ramp1: e vel = {vel:.1f}')
+    elif args.ref_type == 'ramp3':
+        # Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64) # bad Q
+        Q = np.array([1,1,1, 1,1,1, 2,2,2.], dtype=np.float64)
+        default_params = [3.0]
+        params = args.params if len(args.params) != 0 else default_params
+        assert len(params) == len(default_params)
+        vel = params[0]
+        traj_fn.setNorthMode(traj.Mode.LINE, [vel, x0[0]])
+        traj_fn.setEastMode(traj.Mode.LINE, [vel, x0[1]])
+        traj_fn.setDownMode(traj.Mode.LINE, [-vel, x0[2]])
+        traj_fn.setYawMode(traj.Mode.STEP, [x0[5]])
+        print(f'ref = ramp3: n/e/d vel = {vel:.1f}')
+
+    if args.weights is not None:
+        Q = np.array(args.weights)
+    print('Q =', Q)
+
+    return Simulator(tf, dt, T, x0, Q, traj_fn.eval)
+
+
 def main():
     pass
+
 
 if __name__ == '__main__':
     main()

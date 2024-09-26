@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from examples.single_link_arm.plotter import Plotter
 from parsing import getParsedArgs_plot
@@ -11,7 +10,6 @@ def plot(load_dir: str):
     legend = True
     fontsize = 14
     figsize = (1000,800)
-    save = True
     img_types = ['svg', 'pdf']
 
     ## Load Data
@@ -23,7 +21,6 @@ def plot(load_dir: str):
     xtraj_hist = np.loadtxt(load_dir + 'states.txt').reshape(len(c_list),-1,2)
     xr_hist = np.loadtxt(load_dir + 'ref_states.txt')
     utraj_hist = np.loadtxt(load_dir + 'inputs.txt').reshape(len(c_list),-1)
-    # solve_times = np.loadtxt(load_dir + 'solve_times.txt')
 
     plotter = Plotter(time, legend, deg, fontsize, figsize)
 

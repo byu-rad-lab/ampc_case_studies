@@ -10,19 +10,14 @@ def plot(load_dir: str):
     legend = True
     fontsize = 14
     figsize = (1000,800)
-    save = True
     img_types = ['svg', 'pdf']
 
     ## Load Data
     time = np.loadtxt(load_dir + 'time.txt')
     costs = np.loadtxt(load_dir + 'costs.txt')
-    # aff_costs = np.loadtxt(load_dir + 'aff_costs.txt')
-    # lin_costs = np.loadtxt(load_dir + 'lin_costs.txt')
     aff_states = np.loadtxt(load_dir + 'aff_states.txt')
     lin_states = np.loadtxt(load_dir + 'lin_states.txt')
     xr_hist = np.loadtxt(load_dir + 'ref_states.txt')
-    # utraj_hist = np.loadtxt(load_dir + 'inputs.txt')
-    # solve_times = np.loadtxt(load_dir + 'solve_times.txt')
 
     plotter = Plotter(time, legend, deg, fontsize, figsize)
 
@@ -64,8 +59,6 @@ def plot(load_dir: str):
     for i,c in enumerate(c_list):
         plotter.plotStateLine(aff_states[i], label=f'aff: {c = :.1f}')
         plotter.plotStateLine(lin_states[i], '-.', label=f'lin: {c = :.1f}')
-    # plotter.plotStateLine(aff_states[idx[0]], label=f'best aff: c={idx[0]:.1f}')
-    # plotter.plotStateLine(lin_states[idx[0]], label=f'best lin: c={idx[0]:.1f}')
     plotter.plotStateLine(xr_hist, 'r--', label='ref')
 
     plotter.show()

@@ -10,7 +10,6 @@ def plot(load_dir: str):
     legend = True
     fontsize = 14
     figsize = (1000,850)
-    save = True
     img_types = ['svg', 'pdf']
 
     ## Load Data
@@ -100,12 +99,6 @@ def plot(load_dir: str):
         plotter.plotSolveTimes(time, aff_ueq_solve_times[i], label=f'aff (ueq): {c = :.1f}')
         plotter.plotSolveTimes(time, aff_xeq_solve_times[i], label=f'aff (xeq): {c = :.1f}')
         plotter.plotSolveTimes(time, lin_solve_times[i], '-.', label=f'lin: {c = :.1f}')
-    # plotter.plotStateLine(aff_states[aff_idx], label=f'best aff: c={aff_c:.1f}')
-    # plotter.plotStateLine(lin_states[lin_idx], label=f'best lin: c={lin_c:.1f}')
-    # plotter.plotInputLine(time, aff_inputs[aff_idx], label=f'best aff: c = {aff_c:.1f}')
-    # plotter.plotInputLine(time, lin_inputs[lin_idx], label=f'best lin: c = {lin_c:.1f}')
-    # plotter.plotSolveTimes(time, aff_solve_times[aff_idx], label=f'best aff: c = {aff_c:.1f}')
-    # plotter.plotSolveTimes(time, lin_solve_times[lin_idx], label=f'best lin: c = {lin_c:.1f}')
     plotter.plotStateLine(time, xr_hist, 'r--', label='ref')
 
     plotter.show()
