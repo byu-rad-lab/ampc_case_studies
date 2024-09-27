@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 class Plotter:
     def __init__(self, legend: bool=True, deg: bool=True,
                  fontsize: int=12, fig_size: tuple[int,int]=(800,600)):
-        # self.time = time
         self.legend = legend
         self.deg = deg
         self.fontsize = fontsize + 0.5
@@ -200,30 +199,17 @@ class Plotter:
         self.window.show()
 
     def savePlots(self, path: str, image_type: str='svg'):
-        # if self.legend:
-        #     self.pos_ax.legend(fontsize=self.fontsize-1)
-
         if path[-1] != '/':
             path += '/'
         if self.has_cost_data:
-            # xlabel = self.cost_ax.get_xlabel()
-            # self.cost_ax.set_xlabel(xlabel, fontsize=20)
-            # self.cost_fig.tight_layout()
             self.cost_fig.savefig(f'{path}cost.{image_type}')
         if self.has_state_data:
-            # xlabel = self.vel_ax.get_xlabel()
-            # self.vel_ax.set_xlabel(xlabel, fontsize=12)
-            # self.x_fig.tight_layout()
             self.pos_fig.savefig(f'{path}position.{image_type}')
             self.att_fig.savefig(f'{path}attitude.{image_type}')
             self.vel_fig.savefig(f'{path}velocity.{image_type}')
         if self.has_input_data:
-            # self.u_fig.subplots_adjust(left=0.1, bottom=0.1)
-            # self.u_fig.tight_layout()
             self.u_fig.savefig(f'{path}inputs.{image_type}')
         if self.has_solvetime_data:
-            # self.st_fig.subplots_adjust(left=0.07)
-            # self.st_fig.tight_layout()
             self.st_fig.savefig(f'{path}solve_times.{image_type}')
         if self.has_mincosts_data:
             self.mincost_fig.savefig(f'{path}mincosts.{image_type}')
