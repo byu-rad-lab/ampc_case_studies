@@ -1,9 +1,9 @@
 import numpy as np
 from time import time as now
 from typing import Callable
+import affine_mpc_py as ampc
 
 from . import dynamics as arm
-from .. import ampc_py as ampc
 from .. import trajectory as traj
 
 
@@ -21,9 +21,6 @@ class Simulator:
         self.time = np.arange(0.0, tf+self.dt, self.dt)
         self.Q = Q.copy()
         self.getRefTrajectory = xref_gen
-        self.k = 0
-        self.mpc = None
-        # self._setupMPC()
 
     def _setupMPC(self):
         self.mpc = ampc.ImplicitMPC(self.n, self.m, self.T, self.p)
@@ -35,12 +32,12 @@ class Simulator:
         self.mpc.setInputLimits(-u_max, u_max)
         self.mpc.setStateWeights(self.Q)
         xr = np.array([np.radians(90), 0.0])
-        self.mpc.setDesiredState(xr)
+        self.mpc.setReferenceState(xr)
         settings = ampc.OSQPSettings()
         # settings.warm_start = True
         # settings.eps_dual_inf = 1e-3
         # settings.eps_prim_inf = 1e-3
-        self.mpc.initSolver(settings)
+        self.mpc.initializeSolver(settings)
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
                            k: int, linearize: bool):
@@ -66,11 +63,14 @@ class Simulator:
         for t in self.time[:-1]:
             start = now()
             xr_traj = self.getRefTrajectory(t)
-            self.mpc.setDesiredStateTrajectory(xr_traj)
+            self.mpc.setReferenceStateTrajectory(xr_traj)
             self.updateControlModel(x, xr_traj, c, k, linearize)
-            u_star, solved = self.mpc.calcNextInput(x)
+            solved = self.mpc.solve(x)
+            if solved:
+                u_star = self.mpc.getNextInput()
+            else:
+                print(':(')
             solve_times.append(now() - start)
-            if not solved: print(':(')
             u_hist.append(u_star.copy())
 
             x = self.sys.integrateRK4(x, u_star, self.dt)

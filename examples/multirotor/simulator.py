@@ -1,9 +1,9 @@
 import numpy as np
 from time import time as now
 from typing import Callable
+import affine_mpc_py as ampc
 
 from ..multirotor.dynamics import Multirotor
-from .. import ampc_py as ampc
 from . import trajectory as traj
 
 
@@ -35,11 +35,11 @@ class Simulator:
         self.mpc.setInputLimits(u_min, u_max)
         self.mpc.setStateWeights(self.Q)
         xr = np.array([1,1,-6, 0,0,np.radians(90), 0,0,0])
-        self.mpc.setDesiredState(xr)
+        self.mpc.setReferenceState(xr)
 
         settings = ampc.OSQPSettings()
         # settings.warm_start = False
-        self.mpc.initSolver(settings)
+        self.mpc.initializeSolver(settings)
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
                            k: int, u_prev: np.ndarray, method: str):
@@ -76,11 +76,15 @@ class Simulator:
         for t in self.time[:-1]:
             start = now()
             xr_traj = self.getRefTrajectory(t)
-            self.mpc.setDesiredStateTrajectory(xr_traj.flatten())
+            self.mpc.setReferenceStateTrajectory(xr_traj.flatten())
             self.updateControlModel(x, xr_traj, c, k, u_star, method)
-            _, solved = self.mpc.calcNextInput(x, u_star)
+            solved = self.mpc.solve(x)
+            if solved:
+                _ = self.mpc.getNextInput(u_star)
+                # u_star = self.mpc.getNextInput()
+            else:
+                print(':(')
             solve_times.append(now() - start)
-            if not solved: print(':(')
             u_hist.append(u_star.copy())
 
             x = self.sys.integrateRK4(x, u_star, self.dt)
