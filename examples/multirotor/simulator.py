@@ -93,8 +93,6 @@ class Simulator:
             xr_hist.append(xr.copy())
 
             error = xr - x
-            # test_Q = self.Q * np.array([1,1,1, 0,0,1, 0,0,0])
-            # cost_integral += np.sqrt(test_Q @ error**2)
             cost_integral += np.sqrt(self.Q @ error**2)
 
         x_hist = np.array(x_hist)
@@ -108,6 +106,7 @@ def getSimulator(args):
     dt = 0.02
     T = 100
     x0 = np.array([0,0,-20., 0,0,0, 0,0,0])
+    ref_types = ['step', 'wavy', 'ramp1', 'ramp3']
 
     traj_fn = traj.EulerStateTrajectory(T, dt)
     if args.ref_type == 'step':
@@ -152,8 +151,8 @@ def getSimulator(args):
         traj_fn.setYawMode(traj.Mode.STEP, [x0[5]])
         print(f'ref = ramp1: e vel = {vel:.1f}')
     elif args.ref_type == 'ramp3':
-        # Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64) # bad Q
-        Q = np.array([1,1,1, 1,1,1, 2,2,2.], dtype=np.float64)
+        Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64) # bad Q
+        # Q = np.array([1,1,1, 1,1,1, 2,2,2.], dtype=np.float64)
         default_params = [3.0]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -163,6 +162,8 @@ def getSimulator(args):
         traj_fn.setDownMode(traj.Mode.LINE, [-vel, x0[2]])
         traj_fn.setYawMode(traj.Mode.STEP, [x0[5]])
         print(f'ref = ramp3: n/e/d vel = {vel:.1f}')
+    else:
+        raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
 
     if args.weights is not None:
         Q = np.array(args.weights)

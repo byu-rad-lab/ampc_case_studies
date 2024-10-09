@@ -10,12 +10,11 @@ class PlotWindow:
         self.legend = legend
         self.deg = deg
         self.legend_fontsize = fontsize - 4
-        self.window = TabbedWindow('Robot Arm Simulation Data', fig_size)
+        self.window = TabbedWindow('Block Beam Simulation Data', fig_size)
         self.tabs = []
 
     def _setupCostPlot(self):
-        self.cost_fig, cost_ax = plt.subplots(1)
-        self.cost_ax: plt.Axes = cost_ax
+        self.cost_fig, self.cost_ax = plt.subplots(1)
         self.cost_ax.set_xlabel('c')
         self.cost_ax.set_ylabel(r'$\int$cost')
         name = 'Costs'
@@ -23,31 +22,42 @@ class PlotWindow:
         self.tabs.append(name)
 
     def _setupStatePlot(self):
-        self.x_fig, self.x_ax = plt.subplots(2, sharex=True)
-        self.pos_ax: plt.Axes = self.x_ax[0]
-        self.vel_ax: plt.Axes = self.x_ax[1]
+        self.pos_fig, self.pos_ax = plt.subplots(2, sharex=True)
+        ax: list[plt.Axes] = self.pos_ax
+        ax[0].set_ylabel(r'$z$ (m)')
         if self.deg:
-            self.pos_ax.set_ylabel(r'$\theta$ (deg)')
+            ax[1].set_ylabel(r'$\theta$ (deg)')
         else:
-            self.pos_ax.set_ylabel(r'$\theta$ (rad)')
-        self.vel_ax.set_ylabel(r'$\dot{\theta}$ (rad/s)')
-        self.vel_ax.set_xlabel('time (s)')
-        name = 'States'
-        self.window.addTab(name, self.x_fig)
+            ax[1].set_ylabel(r'$\theta$ (rad)')
+        ax[1].set_xlabel('time (s)')
+        name = 'Position'
+        self.window.addTab(name, self.pos_fig)
+        self.tabs.append(name)
+
+        self.vel_fig, vel_ax = plt.subplots(2, sharex=True)
+        self.vel_ax: list[plt.Axes] = vel_ax
+        ax: list[plt.Axes] = self.vel_ax
+        ax[0].set_ylabel(r'$\dot{z}$ (m/s)')
+        ax[1].set_ylabel(r'$\dot{\theta}$ (rad/s)')
+        ax[1].set_xlabel('time (s)')
+        name = 'Velocity'
+        self.window.addTab(name, self.vel_fig)
         self.tabs.append(name)
 
     def _setupInputPlot(self):
         self.u_fig, self.u_ax = plt.subplots(1)
-        self.u_ax.set_ylabel('torque')
-        self.u_ax.set_xlabel('time (s)')
+        ax: plt.Axes = self.u_ax
+        ax.set_ylabel('F')
+        ax.set_xlabel('time (s)')
         name = 'Inputs'
         self.window.addTab(name, self.u_fig)
         self.tabs.append(name)
 
     def _setupSolveTimePlot(self):
         self.st_fig, self.st_ax = plt.subplots(1)
-        self.st_ax.set_ylabel('solve time (s)')
-        self.st_ax.set_xlabel('simulation time (s)')
+        ax: plt.Axes = self.st_ax
+        ax.set_ylabel('solve time (s)')
+        ax.set_xlabel('simulation time (s)')
         name = 'Solve Times'
         self.window.addTab(name, self.st_fig)
         self.tabs.append(name)
@@ -76,29 +86,34 @@ class PlotWindow:
         self.tabs.append(name)
 
     def plotStateLine(self, time: np.ndarray, x_hist: np.ndarray, *args, **kwargs):
-        if not 'States' in self.tabs:
+        if not 'Position' in self.tabs:
             self._setupStatePlot()
-        if self.deg:
-            self.pos_ax.plot(time, np.rad2deg(x_hist[:, 0]), *args, **kwargs)
-        else:
-            self.pos_ax.plot(time, x_hist[:, 0], *args, **kwargs)
-        self.vel_ax.plot(time, x_hist[:, 1], *args, **kwargs)
+
+        x_ax: list[plt.Axes] = [*self.pos_ax, *self.vel_ax]
+        for i,ax in enumerate(x_ax):
+            if i in [1] and self.deg:
+                data = np.rad2deg(x_hist[:,i])
+            else:
+                data = x_hist[:,i]
+            ax.plot(time, data, *args, **kwargs)
 
     def plotInputLine(self, time: np.ndarray, u_hist: np.ndarray, *args, **kwargs):
         if not 'Inputs' in self.tabs:
             self._setupInputPlot()
-        self.u_ax.plot(time[:-1], u_hist, drawstyle='steps-post', *args, **kwargs)
-        self.u_fig.tight_layout()
+        ax: plt.Axes = self.u_ax
+        ax.plot(time[:-1], u_hist, drawstyle='steps-post', *args, **kwargs)
 
     def plotCosts(self, c_arr: list, cost_arr: list, *args, **kwargs):
         if not 'Costs' in self.tabs:
             self._setupCostPlot()
-        self.cost_ax.plot(c_arr, cost_arr, *args, **kwargs)
+        ax: plt.Axes = self.cost_ax
+        ax.plot(c_arr, cost_arr, *args, **kwargs)
 
     def plotSolveTimes(self, time: np.ndarray, st_hist: np.ndarray, *args, **kwargs):
         if not 'Solve Times' in self.tabs:
             self._setupSolveTimePlot()
-        self.st_ax.plot(time[:-1], st_hist, *args, **kwargs)
+        ax: plt.Axes = self.st_ax
+        ax.plot(time[:-1], st_hist, *args, **kwargs)
 
     def plotMinCosts(self, k_list: np.ndarray, min_costs: np.ndarray,
                      min_c_list: np.ndarray, *args, **kwargs):
@@ -121,62 +136,68 @@ class PlotWindow:
 
     def show(self):
         self.window.show()
-        fs = self.legend_fontsize
+        leg_fontsize = self.legend_fontsize
         if 'Costs' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Costs'))
             if self.legend and len(self.cost_ax.get_lines()) > 1:
-                self.cost_ax.legend(fontsize=fs)
+                self.cost_ax.legend(fontsize=leg_fontsize)
             self.cost_fig.tight_layout()
-        if 'States' in self.tabs:
-            self.window.tabs.setCurrentIndex(self.tabs.index('States'))
-            # if self.legend and len(self.pos_ax.get_lines()) > 10:
-            #     self.pos_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=fs)
-            #     self.x_fig.subplots_adjust(right=0.835)
-            # elif self.legend and len(self.pos_ax.get_lines()) > 1:
-            if self.legend and 6 > len(self.pos_ax.get_lines()) > 1:
-                self.pos_ax.legend(fontsize=fs)
-            self.x_fig.tight_layout()
+        if 'Position' in self.tabs:
+            # if self.legend and len(self.pos_ax[0].get_lines()) > 5:
+            #     self.pos_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+            #     self.vel_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+            #     self.pos_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
+            #     self.vel_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
+            # elif self.legend and len(self.pos_ax[0].get_lines()) > 1:
+            if self.legend and 6 > len(self.pos_ax[0].get_lines()) > 1:
+                self.pos_ax[0].legend(fontsize=leg_fontsize)
+                self.vel_ax[0].legend(fontsize=leg_fontsize)
+            self.window.tabs.setCurrentIndex(self.tabs.index('Position'))
+            self.pos_fig.tight_layout()
+            self.window.tabs.setCurrentIndex(self.tabs.index('Velocity'))
+            self.vel_fig.tight_layout()
         if 'Inputs' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Inputs'))
-            # if self.legend and len(self.u_ax.get_lines()) > 10:
-            #     self.u_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=fs)
-            #     self.u_fig.subplots_adjust(left=0.1, bottom=0.1, right=0.835)
+            # if self.legend and len(self.u_ax.get_lines()) > 5:
+            #     self.u_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
+            #     self.u_fig.subplots_adjust(left=0.1, right=0.8, bottom=0.09, hspace=0.45)
             # elif self.legend and len(self.u_ax.get_lines()) > 1:
             if self.legend and 5 > len(self.u_ax.get_lines()) > 1:
-                self.u_ax.legend(fontsize=fs)
-            self.u_fig.subplots_adjust(left=0.1, bottom=0.1)
+                self.u_ax.legend(fontsize=leg_fontsize)
             self.u_fig.tight_layout()
         if 'Solve Times' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Solve Times'))
-            # if self.legend and len(self.st_ax.get_lines()) > 10:
-            #     self.st_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=fs)
-            #     self.st_fig.subplots_adjust(right=0.835)
-            # elif self.legend and len(self.st_ax.get_lines()) > 1:
-            if self.legend and 5 > len(self.st_ax.get_lines()) > 1:
-                self.st_ax.legend(fontsize=fs)
+            ax: plt.Axes = self.st_ax
+            # if self.legend and len(ax.get_lines()) > 5:
+            #     ax.legend(fontsize=leg_fontsize)
+            #     self.st_fig.subplots_adjust(left=0.1, bottom=0.1)
+            # elif self.legend and len(ax.get_lines()) > 1:
+            if self.legend and 5 > len(ax.get_lines()) > 1:
+                ax.legend(fontsize=leg_fontsize)
             self.st_fig.tight_layout()
         if 'min costs' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('min costs'))
             if self.legend:
                 ax: list[plt.Axes] = self.mincost_ax
-                ax[0].legend(fontsize=fs)
-                ax[1].legend(fontsize=fs)
+                ax[0].legend(fontsize=leg_fontsize)
+                ax[1].legend(fontsize=leg_fontsize)
                 ax: list[plt.Axes] = self.cvk_ax
-                ax[0].legend(fontsize=fs)
-                ax[1].legend(fontsize=fs)
+                ax[0].legend(fontsize=leg_fontsize)
+                ax[1].legend(fontsize=leg_fontsize)
             self.mincost_fig.tight_layout()
         if 'c vs k' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('c vs k'))
             self.cvk_fig.tight_layout()
         self.window.tabs.setCurrentIndex(0)
 
-    def savePlots(self, path: str, end: str='', image_type: str='pdf'):
+    def savePlots(self, path: str, end: str='', image_type: str='svg'):
         if path[-1] != '/':
             path += '/'
         if 'Costs' in self.tabs:
-            self.cost_fig.savefig(f'{path}cost{end}.{image_type}')
+            self.cost_fig.savefig(f'{path}cost.{image_type}')
         if 'States' in self.tabs:
-            self.x_fig.savefig(f'{path}states{end}.{image_type}')
+            self.pos_fig.savefig(f'{path}position{end}.{image_type}')
+            self.vel_fig.savefig(f'{path}velocity{end}.{image_type}')
         if 'Inputs' in self.tabs:
             self.u_fig.savefig(f'{path}inputs{end}.{image_type}')
         if 'Solve Times' in self.tabs:

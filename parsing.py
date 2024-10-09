@@ -8,8 +8,21 @@ def fixDirString(dir_s: str):
     return dir_s
 
 
-def getParsedArgs_run(default_dir: str, description: str, ref_types: list[str]):
+def fixSystemString(s: str):
+    if s[0] == 'a':
+        return 'arm'
+    elif s[0] == 'b':
+        return 'blockbeam'
+    elif s[0] == 'm':
+        return 'multirotor'
+    else:
+        raise ValueError(f'Invalid system: {s}')
+
+
+def getParsedArgs_run(default_dir: str, description: str):
     parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-S', '--system', type=str, default='arm', nargs='?',
+                        help='System to simulate: [arm, blockbeam, multirotor]')
     parser.add_argument('-D', '--dir', type=str,
                         default=default_dir,
                         help='Specify path to directory where data will be saved.')
@@ -17,15 +30,21 @@ def getParsedArgs_run(default_dir: str, description: str, ref_types: list[str]):
                         help='Create DIR if it does not exist and is not the default.')
     parser.add_argument('-o', '--overwrite-dir', action='store_true',
                         help='Overwrite contents of DIR if it exists.')
+    parser.add_argument('-H', '--headless', action='store_true',
+                        help='Run in headless mode')
+    parser.add_argument('-k', '--k-all', action='store_true',
+                        help='Run for all k indices or just k=0')
+    # parser.add_argument('-K', type=int, default=0, nargs='?',
+    #                     help='Specify k indices to anlayze: start, [stop], [step]')
     parser.add_argument('-Q', '--weights', type=float, nargs='*',
                         help='State weights')
-    parser.add_argument('-R', '--ref-type', type=str,
-                        default=ref_types[0],
-                        help=f'Reference trajectory type: {ref_types}')
+    parser.add_argument('-R', '--ref-type', type=str, default='step',
+                        help=f'Reference trajectory type')
     parser.add_argument('params', nargs='*', type=float,
                         help='A list of parameters for the reference trajectory')
     args = parser.parse_args()
     args.dir = fixDirString(args.dir)
+    args.system = fixSystemString(args.system)
 
     if not os.path.exists(args.dir):
         default = args.dir == default_dir
@@ -53,6 +72,8 @@ def getParsedArgs_plot(default_dir: str, description: str):
     parser.add_argument('-D', '--dir', type=str,
                         default=default_dir,
                         help='Specify path to directory from which data will be loaded.')
+    parser.add_argument('-H', '--headless', action='store_true',
+                        help='Run in headless mode')
     args = parser.parse_args()
     args.dir = fixDirString(args.dir)
     print(f'Loading data from: {args.dir}')

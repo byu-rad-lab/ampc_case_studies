@@ -20,8 +20,8 @@ import time
 
 
 class FigureSpacing:
-    def __init__(self, left: float = 0.06, right: float = 0.99,
-                 bottom: float = 0.055, top: float = 0.97,
+    def __init__(self, left: float = 0.075, right: float = 0.99,
+                 bottom: float = 0.075, top: float = 0.95,
                  wspace: float = 0.25, hspace: float = 0.2):
         self.left = left
         self.right = right
@@ -31,7 +31,7 @@ class FigureSpacing:
         self.hspace = hspace
 
 
-class TabbedPlotWindow:
+class TabbedWindow:
     '''
     A class to create a tabbed plot window where the tabs are matplotlib
     figures. When using this class, DO NOT USE plt.show() or plt.pause() as they
@@ -39,22 +39,18 @@ class TabbedPlotWindow:
     by this class.
     '''
 
-    def __init__(self, window_title: str = 'plot window', size: List[int] = [1280, 900],
-                 fontsize: int=12):
-        matplotlib.rcParams['font.size'] = fontsize
-        self.app = QApplication(sys.argv)
-        self.MainWindow = QMainWindow()
-        self.MainWindow.__init__()
-        self.MainWindow.setWindowTitle(window_title)
+    def __init__(self, window_title: str = 'plot window', size: List[int] = [1280, 900]):
+        self.main_window = QMainWindow()
+        self.main_window.__init__()
+        self.main_window.setWindowTitle(window_title)
         self.canvases: List[FigureCanvas] = []
         self.figure_handles: List[Figure] = []
         self.toolbar_handles: List[NavigationToolbar] = []
         self.tab_handles: List[QWidget] = []
         self.current_window = -1
         self.tabs = QTabWidget()
-        self.MainWindow.setCentralWidget(self.tabs)
-        self.MainWindow.resize(*size)
-        self.MainWindow.show()
+        self.main_window.setCentralWidget(self.tabs)
+        self.main_window.resize(*size)
 
     def addTab(self, tab_title: str, figure: Figure,
                spacing: FigureSpacing = FigureSpacing()):
@@ -78,29 +74,39 @@ class TabbedPlotWindow:
         self.tab_handles.append(new_tab)
 
     def show(self):
-        '''
-        Replacement for plt.show(). This is blocking code that will display
-        the plot window and keep it open until the window is closed or until
-        ctrl+c is pressed.
-        '''
-        # kill the program with ctrl+c
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        # run the application
-        # for fig in self.figure_handles:
-        #     fig.tight_layout()
-        self.app.exec_()
-        self.app.exec()
-        # self.app.quit()
+        self.main_window.show()
 
-    def pause(self, delay_seconds: float):
+    def update(self):
         '''
         Replacement for plt.pause(). This will display the plot window for the
         specified delay time (in seconds) and then resume your code.
         '''
-        start = time.time()
         for canvas in self.canvases:
             canvas.draw()
             canvas.flush_events()
+
+
+class PlotApplication:
+    def __init__(self, fontsize: int=12):
+        matplotlib.rcParams['font.size'] = fontsize
+        self.app = QApplication(sys.argv)
+        self.windows: list[TabbedWindow] = []
+
+    def addWindow(self, window: TabbedWindow):
+        self.windows.append(window)
+        window.show()
+
+    def show(self):
+        for win in self.windows:
+            for fig in win.figure_handles:
+                fig.tight_layout()
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        self.app.exec() # exec_() is for PyQt < 5 and Python < 3. Use exec now
+
+    def pause(self, delay_seconds: float):
+        start = time.time()
+        for window in self.windows:
+            window.update()
         elapsed = time.time() - start
         delay = delay_seconds - elapsed
         if delay < 0:
@@ -112,28 +118,47 @@ if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
 
-    pw = TabbedPlotWindow()
+    plotter = PlotApplication()
+    window1 = TabbedWindow()
+    window2 = TabbedWindow()
 
     # data
     t = np.arange(0, 10, 0.001)
     ysin = np.sin(t)
     ycos = np.cos(t)
 
-    # figure 1: sin(t)
+
     f,ax = plt.subplots()
     line1, = ax.plot(t, ysin, '--')
     ax.set_xlabel('time')
     ax.set_ylabel('sin(t)')
     ax.set_title('Plot of sin(t)')
-    pw.addTab("sin", f)
+    window1.addTab("sin", f)
 
-    # figure 2: cos(t)
+    f,ax = plt.subplots()
+    ax.plot(t, t)
+    ax.set_xlabel('time')
+    ax.set_ylabel('t')
+    ax.set_title('Plot of t')
+    window1.addTab("time", f)
+
+    plotter.addWindow(window1)
+
     f,ax = plt.subplots()
     line2, = ax.plot(t, ycos, '--')
     ax.set_xlabel('time')
     ax.set_ylabel('cos(t)')
     ax.set_title('Plot of cos(t)')
-    pw.addTab("cos", f)
+    window2.addTab("cos", f)
+
+    f,ax = plt.subplots()
+    ax.plot(t, t)
+    ax.set_xlabel('time')
+    ax.set_ylabel('t')
+    ax.set_title('Plot of t')
+    window2.addTab("time", f)
+
+    plotter.addWindow(window2)
 
     # animate
     dt = 0.1
@@ -143,6 +168,7 @@ if __name__ == '__main__':
         line1.set_ydata(ysin)
         ycos = np.cos(t)
         line2.set_ydata(ycos)
-        pw.pause(0.05)
+        plotter.pause(0.05)
+        # time.sleep(0.05)
 
-    pw.show()
+    plotter.show()

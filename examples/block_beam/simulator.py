@@ -3,13 +3,13 @@ from time import time as now
 from typing import Callable
 import affine_mpc_py as ampc
 
-from . import dynamics as arm
-from .. import trajectory as traj
+from . import dynamics
+from . import trajectory as traj
 
 
 class Simulator:
-    n,m = 2,1
-    sys = arm.SingleLinkArm(mass=0.5, length=0.3, damping=0.1)
+    n,m = 4,1
+    sys = dynamics.BlockBeam(block_mass=0.35, beam_mass=2., length=0.5)
     p = 5
 
     def __init__(self, tf: float, dt: float, T: int, x0: np.ndarray,
@@ -24,46 +24,46 @@ class Simulator:
 
     def _setupMPC(self):
         self.mpc = ampc.ImplicitMPC(self.n, self.m, self.T, self.p)
-        xp = np.array([np.radians(30), 0.0])
-        up = np.array([0.0]) + self.sys.getEquilibriumTorque(xp[0])
+        xp = np.array([self.sys.len*0.25, np.radians(30), -0.1, 0.1])
+        up = np.array([0.1]) + self.sys.getEquilibriumInput(xp[0])
         model = self.sys.affinize(xp, up)
         self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt)
-        u_max = np.array([1.0])
+        u_max = np.array([15.0])
         self.mpc.setInputLimits(-u_max, u_max)
         self.mpc.setStateWeights(self.Q)
-        xr = np.array([np.radians(90), 0.0])
+        xr = np.array([self.sys.len*0.75, np.radians(0), 0, 0])
         self.mpc.setReferenceState(xr)
         self.mpc.initializeSolver()
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
                            k: int, u_prev: np.ndarray, method: str):
-        xr = xr_traj[2*k:2*(k+1)]
+        xr = xr_traj[k]
         if method in ['lin', 'xeq']:
-            mask = np.array([1, 0])
+            mask = np.array([1, 0, 0, 0])
         else:
             mask = np.ones_like(x)
         xp = (1-c)*x*mask + c*xr*mask
         if method in ['uk', 'xeq']:
             up = u_prev
         else:
-            up = np.zeros(self.m) + self.sys.getEquilibriumTorque(xp[0])
+            up = np.zeros(self.m) + self.sys.getEquilibriumInput(xp[0])
         model = self.sys.affinize(xp, up)
         self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt, 1e-8)
 
-    def run(self, c: int, k: int, method: str='lin'):
+    def run(self, c: int, k: int, method: str='uk'):
         x = self.x0.copy()
         x_hist = [x.copy()]
-        xr_hist = [self.getRefTrajectory(0)[:2].copy()]
+        xr_hist = [self.getRefTrajectory(0)[0].copy()]
         u_hist = []
         solve_times = []
         cost_integral = 0.0
-        u_star = np.array([self.sys.getEquilibriumTorque(x[0])])
+        u_star = np.array([self.sys.getEquilibriumInput(x[0])])
         self._setupMPC()
 
         for t in self.time[:-1]:
             start = now()
             xr_traj = self.getRefTrajectory(t)
-            self.mpc.setReferenceStateTrajectory(xr_traj)
+            self.mpc.setReferenceStateTrajectory(xr_traj.flatten())
             self.updateControlModel(x, xr_traj, c, k, u_star, method)
             solved = self.mpc.solve(x)
             if solved:
@@ -75,7 +75,7 @@ class Simulator:
 
             x = self.sys.integrateRK4(x, u_star, self.dt)
             x_hist.append(x.copy())
-            xr = xr_traj[:2]
+            xr = xr_traj[0]
             xr_hist.append(xr.copy())
 
             error = xr - x
@@ -90,51 +90,51 @@ class Simulator:
 def getSimulator(args):
     tf = 10.0
     dt = 0.01
-    x0 = np.array([np.radians(0), 0.0])
+    x0 = np.array([0.05, np.radians(0), 0, 0])
     T = 100
-    Q = np.array(args.weights) if args.weights is not None else np.ones(2)
-    assert len(Q) == 2
+    Q = np.array(args.weights) if args.weights is not None else np.array([1., .1, .1, .1])
+    assert len(Q) == len(x0)
     print(f'{Q = }')
     ref_types = ['step', 'cos', 'ramp']
 
+    traj_fn = traj.BlockBeamTrajectory(T, dt)
     reference_type = args.ref_type
     print(f'{reference_type = }: ', end='')
     if reference_type == 'step':
         # Q = np.array([1.0, 1.0])
-        default_params = [30.]
+        default_params = [0.1]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
-        amplitude = np.radians(params[0])
-        xr = np.array([amplitude, 0.0])
-        traj_fn = traj.Step(xr, T)
-        print(f'amplitude = radians({params[0]})')
+        amplitude = params[0]
+        traj_fn.setZMode(traj.Mode.STEP, [x0[0] + amplitude])
+        print(f'amplitude = {params[0]}')
     elif reference_type == 'cos':
         # Q = np.array([1.0, 1.0])
         # Q = np.array([1.0, 0.1])
         # Q = np.array([1.0, 0.01])
-        default_params = [60., 2.]
+        default_params = [.15, 1.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
-        amplitude = np.radians(params[0])
+        amplitude = -params[0]
         period = tf / params[1]
-        frequency_hz = 1 / period
-        offset = x0[0]
-        traj_fn = traj.Sinusoidal(amplitude, frequency_hz, offset, T, dt, reference_type)
-        print(f'amplitude = radians({params[0]:.1f}), period = tf/{params[1]:.1f}')
+        offset = x0[0] - amplitude
+        phase = np.radians(90)
+        traj_fn.setZMode(traj.Mode.SINE, [amplitude, period, phase, offset])
+        print(f'amplitude = {params[0]:.1f}, period = tf/{params[1]:.1f}')
     elif reference_type == 'ramp':
         # Q = np.array([1.0, 1.0])
         # Q = np.array([1.0, 0.1])
         # Q = np.array([1.0, 0.01])
-        default_params = [10.]
+        default_params = [.3]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
-        vel = 2*np.pi / params[0]
-        traj_fn = traj.Ramp(velocity=vel, offset=x0[0], horizon=T, dt=dt)
-        print(f'ref = ramp: vel = 2pi/{params[0]:.1f}')
+        vel =  params[0] / tf
+        traj_fn.setZMode(traj.Mode.LINE, [vel, x0[0]])
+        print(f'ref = ramp: vel = {params[0]:.1f}/tf')
     else:
         raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
 
-    return Simulator(tf, dt, T, x0, Q, traj_fn)
+    return Simulator(tf, dt, T, x0, Q, traj_fn.eval)
 
 
 def main():
