@@ -1,5 +1,6 @@
-#/bin/sh
+#!/bin/sh
 
+## Arm
 python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_30 -R step 30
 python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_60 -R step 60
 python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_120 -R step 120
@@ -20,7 +21,7 @@ python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_90_3 -
 python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_90_4 -R cos 90 4
 
 
-
+## Block Beam
 python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.1 -R step 0.1
 python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.2 -R step 0.2
 python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.3 -R step 0.3
@@ -35,7 +36,7 @@ python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_4
 python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_5 -R cos 0.2 5
 
 
-
+## Multirotor
 python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_1_pi2 -R step 1 2
 python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_2_pi1.5 -R step 2 1.5
 python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_5_pi -R step 5 1
