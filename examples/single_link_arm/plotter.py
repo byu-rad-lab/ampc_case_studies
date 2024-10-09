@@ -1,7 +1,7 @@
 import numpy as np
-# from ..tabbed_plot_window import TabbedPlotWindow, FigureSpacing
-from ..plot_application import PlotApplication, TabbedWindow, FigureSpacing
 import matplotlib.pyplot as plt
+
+from ..plot_application import PlotApplication, TabbedWindow, FigureSpacing
 
 
 class PlotWindow:
@@ -129,29 +129,17 @@ class PlotWindow:
             self.cost_fig.tight_layout()
         if 'States' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('States'))
-            # if self.legend and len(self.pos_ax.get_lines()) > 10:
-            #     self.pos_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=fs)
-            #     self.x_fig.subplots_adjust(right=0.835)
-            # elif self.legend and len(self.pos_ax.get_lines()) > 1:
             if self.legend and 6 > len(self.pos_ax.get_lines()) > 1:
                 self.pos_ax.legend(fontsize=fs)
             self.x_fig.tight_layout()
         if 'Inputs' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Inputs'))
-            # if self.legend and len(self.u_ax.get_lines()) > 10:
-            #     self.u_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=fs)
-            #     self.u_fig.subplots_adjust(left=0.1, bottom=0.1, right=0.835)
-            # elif self.legend and len(self.u_ax.get_lines()) > 1:
             if self.legend and 5 > len(self.u_ax.get_lines()) > 1:
                 self.u_ax.legend(fontsize=fs)
             self.u_fig.subplots_adjust(left=0.1, bottom=0.1)
             self.u_fig.tight_layout()
         if 'Solve Times' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Solve Times'))
-            # if self.legend and len(self.st_ax.get_lines()) > 10:
-            #     self.st_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=fs)
-            #     self.st_fig.subplots_adjust(right=0.835)
-            # elif self.legend and len(self.st_ax.get_lines()) > 1:
             if self.legend and 5 > len(self.st_ax.get_lines()) > 1:
                 self.st_ax.legend(fontsize=fs)
             self.st_fig.tight_layout()

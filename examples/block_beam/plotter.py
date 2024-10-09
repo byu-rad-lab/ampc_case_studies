@@ -1,7 +1,7 @@
 import numpy as np
-# from ..tabbed_plot_window import TabbedPlotWindow, FigureSpacing
-from ..plot_application import PlotApplication, TabbedWindow, FigureSpacing
 import matplotlib.pyplot as plt
+
+from ..plot_application import PlotApplication, TabbedWindow, FigureSpacing
 
 
 class PlotWindow:
@@ -143,12 +143,6 @@ class PlotWindow:
                 self.cost_ax.legend(fontsize=leg_fontsize)
             self.cost_fig.tight_layout()
         if 'Position' in self.tabs:
-            # if self.legend and len(self.pos_ax[0].get_lines()) > 5:
-            #     self.pos_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
-            #     self.vel_ax[0].legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
-            #     self.pos_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
-            #     self.vel_fig.subplots_adjust(left=0.11, right=0.8, bottom=0.09)
-            # elif self.legend and len(self.pos_ax[0].get_lines()) > 1:
             if self.legend and 6 > len(self.pos_ax[0].get_lines()) > 1:
                 self.pos_ax[0].legend(fontsize=leg_fontsize)
                 self.vel_ax[0].legend(fontsize=leg_fontsize)
@@ -158,20 +152,12 @@ class PlotWindow:
             self.vel_fig.tight_layout()
         if 'Inputs' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Inputs'))
-            # if self.legend and len(self.u_ax.get_lines()) > 5:
-            #     self.u_ax.legend(loc=2, bbox_to_anchor=(1,1), fontsize=leg_fontsize)
-            #     self.u_fig.subplots_adjust(left=0.1, right=0.8, bottom=0.09, hspace=0.45)
-            # elif self.legend and len(self.u_ax.get_lines()) > 1:
             if self.legend and 5 > len(self.u_ax.get_lines()) > 1:
                 self.u_ax.legend(fontsize=leg_fontsize)
             self.u_fig.tight_layout()
         if 'Solve Times' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Solve Times'))
             ax: plt.Axes = self.st_ax
-            # if self.legend and len(ax.get_lines()) > 5:
-            #     ax.legend(fontsize=leg_fontsize)
-            #     self.st_fig.subplots_adjust(left=0.1, bottom=0.1)
-            # elif self.legend and len(ax.get_lines()) > 1:
             if self.legend and 5 > len(ax.get_lines()) > 1:
                 ax.legend(fontsize=leg_fontsize)
             self.st_fig.tight_layout()
