@@ -38,11 +38,17 @@ class TabbedPlotWindow:
     will cause issues with the plot window. Instead, use the methods provided
     by this class.
     '''
+    app = None
+    windows = []
+
+    def __new__(cls, *args, **kwargs):
+        if cls.app is None:
+            cls.app = QApplication(sys.argv)
+        return super(TabbedPlotWindow, cls).__new__(cls)
 
     def __init__(self, window_title: str = 'plot window', size: List[int] = [1280, 900],
                  fontsize: int=12):
         matplotlib.rcParams['font.size'] = fontsize
-        self.app = QApplication(sys.argv)
         self.MainWindow = QMainWindow()
         self.MainWindow.__init__()
         self.MainWindow.setWindowTitle(window_title)
@@ -54,10 +60,12 @@ class TabbedPlotWindow:
         self.tabs = QTabWidget()
         self.MainWindow.setCentralWidget(self.tabs)
         self.MainWindow.resize(*size)
+        TabbedPlotWindow.windows.append(self)
         self.MainWindow.show()
 
     def addTab(self, tab_title: str, figure: Figure,
-               spacing: FigureSpacing = FigureSpacing()):
+               spacing: FigureSpacing = FigureSpacing(),
+               tight_layout: bool=True):
         new_tab = QWidget()
         layout = QVBoxLayout()
         new_tab.setLayout(layout)
@@ -76,8 +84,13 @@ class TabbedPlotWindow:
         self.canvases.append(new_canvas)
         self.figure_handles.append(figure)
         self.tab_handles.append(new_tab)
+        if tight_layout:
+            self.tabs.setCurrentIndex(len(self.tabs) - 1)
+            figure.tight_layout()
+            self.tabs.setCurrentIndex(0)
 
-    def show(self):
+    @staticmethod
+    def show():
         '''
         Replacement for plt.show(). This is blocking code that will display
         the plot window and keep it open until the window is closed or until
@@ -86,21 +99,20 @@ class TabbedPlotWindow:
         # kill the program with ctrl+c
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         # run the application
-        # for fig in self.figure_handles:
-        #     fig.tight_layout()
-        self.app.exec_()
-        self.app.exec()
-        # self.app.quit()
+        TabbedPlotWindow.app.exec()
 
-    def pause(self, delay_seconds: float):
+    @staticmethod
+    def pause(delay_seconds: float):
         '''
         Replacement for plt.pause(). This will display the plot window for the
         specified delay time (in seconds) and then resume your code.
         '''
         start = time.time()
-        for canvas in self.canvases:
-            canvas.draw()
-            canvas.flush_events()
+        for window in TabbedPlotWindow.windows:
+            canvases: List[FigureCanvas] = window.canvases
+            for canvas in canvases:
+                canvas.draw()
+                canvas.flush_events()
         elapsed = time.time() - start
         delay = delay_seconds - elapsed
         if delay < 0:
@@ -113,6 +125,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     pw = TabbedPlotWindow()
+    pw2 = TabbedPlotWindow()
 
     # data
     t = np.arange(0, 10, 0.001)
@@ -134,6 +147,7 @@ if __name__ == '__main__':
     ax.set_ylabel('cos(t)')
     ax.set_title('Plot of cos(t)')
     pw.addTab("cos", f)
+    pw2.addTab("cos", f)
 
     # animate
     dt = 0.1
@@ -143,6 +157,6 @@ if __name__ == '__main__':
         line1.set_ydata(ysin)
         ycos = np.cos(t)
         line2.set_ydata(ycos)
-        pw.pause(0.05)
+        TabbedPlotWindow.pause(0.05)
 
-    pw.show()
+    TabbedPlotWindow.show()
