@@ -42,7 +42,7 @@ class LinearModel(ModelBase):
         return self.A @ x + self.B @ u
 
 
-def c2d(model: LinearModel|AffineModel, dt: float, terms: int=5, return_G: bool=True) -> LinearModel|AffineModel:
+def c2d(model: LinearModel|AffineModel, dt: float, terms: int=5, return_G: bool=False) -> LinearModel|AffineModel:
     '''
     Discretize continuous-time dynamics.
 
