@@ -1,71 +1,163 @@
 #!/bin/sh
 
+data_dir=~/data/ampc24/analysis
+run="python run_analysis.py -H -m -o -S"
+run_arm=0
+run_beam=0
+run_pendulum=1
+run_multirotor=0
+
 ## Arm
-python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_30 -R step 30
-python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_60 -R step 60
-python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_120 -R step 120
-python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_180 -R step 180
-python run_analysis.py -H -S a -m -o -D ~/data/ampc24/analysis/arm/step_270 -R step 270
+if [ $run_arm -eq 1 ]; then
+    sys=arm
+    ref=step
+    for amp in 30 60 120 180 270
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_${amp} -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_${amp} -R $ref $amp
+    done
 
-python run_analysis.py -H -S a -m -o -k -D ~/data/ampc24/analysis/arm/ramp_2pi_10 -R ramp 10
-python run_analysis.py -H -S a -m -o -k -D ~/data/ampc24/analysis/arm/ramp_2pi_7.5 -R ramp 7.5
-python run_analysis.py -H -S a -m -o -k -D ~/data/ampc24/analysis/arm/ramp_2pi_5 -R ramp 5
-python run_analysis.py -H -S a -m -o -k -D ~/data/ampc24/analysis/arm/ramp_2pi_2.5 -R ramp 2.5
+    ref=ramp
+    for amp in 2.5 5 7.5 10
+    do
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_2pi_$amp -R $ref $amp"
+        $run $sys -k -D $data_dir/$sys/${ref}_2pi_$amp -R $ref $amp
+    done
 
-python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_60_2 -R cos 60 2
-python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_60_3 -R cos 60 3
-python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_60_4 -R cos 60 4
+    ref=cos
+    for amp in 60 90
+    do
+        for periods in 2 3 4
+        do
+            echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods"
+            $run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods
+        done
+    done
+fi
 
-python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_90_2 -R cos 90 2
-python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_90_3 -R cos 90 3
-python run_analysis.py -H -S a -k -m -o -D ~/data/ampc24/analysis/arm/cos_90_4 -R cos 90 4
+
+## Cart Pendulum
+if [ $run_pendulum -eq 1 ]; then
+    sys=pendulum
+    ref=stepz
+    for amp in 1 2 5 10
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
+
+    ref=step
+    for amp in 1 5 10 15 20 30 45
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
+
+    ref=cosz
+    for amp in 0.5 1 2 5
+    do
+        for periods in 1 2 3 4
+        do
+            echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods"
+            $run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods
+        done
+    done
+
+    ref=cos
+    for amp in 5 15 25
+    do
+        for periods in 1 2 3 4
+        do
+            echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods"
+            $run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods
+        done
+    done
+
+    ref=rampz
+    for amp in 1 2 3 4 5
+    do
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
+
+    ref=ramp
+    for amp in 1 5 10 15 30
+    do
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
+fi
 
 
 ## Block Beam
-python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.1 -R step 0.1
-python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.2 -R step 0.2
-python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.3 -R step 0.3
-python run_analysis.py -H -S b -m -o -D ~/data/ampc24/analysis/beam/step_0.4 -R step 0.4
+if [ $run_beam -eq 1 ]; then
+    sys=beam
+    ref=step
+    for amp in 0.1 0.2 0.3 0.4
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
 
-python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/ramp_0.4 -R ramp 0.1
+    ref=ramp
+    for amp in 0.4
+    do
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
 
-python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_1 -R cos 0.2 1
-python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_2 -R cos 0.2 2
-python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_3 -R cos 0.2 3
-python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_4 -R cos 0.2 4
-python run_analysis.py -H -S b -k -m -o -D ~/data/ampc24/analysis/beam/cos_0.2_5 -R cos 0.2 5
+    ref=cos
+    for amp in 0.2
+    do
+        for periods in 1 2 3 4 5
+        do
+            echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods"
+            $run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods
+        done
+    done
+fi
 
 
 ## Multirotor
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_1_pi2 -R step 1 2
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_2_pi1.5 -R step 2 1.5
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_5_pi -R step 5 1
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_10_2pi -R step 10 0.5
+if [ $run_multirotor -eq 1 ]; then
+    sys=multirotor
+    ref=step
+    for amp in 1,2 2,1.5 5,1 10,0.5
+    do
+        IFS=',' read pos yaw << EOF
+$amp
+EOF
+        echo "$run $sys -D $data_dir/$sys/${ref}_${pos}_pi$yaw -R $ref $pos $yaw"
+        $run $sys -D $data_dir/$sys/${ref}_${pos}_pi$yaw -R $ref $pos $yaw
 
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_1_pi2_q2 -Q 1 1 10 1 1 1 2 2 2 -R step 1 2
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_2_pi1.5_q2 -Q 1 1 10 1 1 1 2 2 2 -R step 2 1.5
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_5_pi_q2 -Q 1 1 10 1 1 1 2 2 2 -R step 5 1
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/step_10_2pi_q2 -Q 1 1 10 1 1 1 2 2 2 -R step 10 0.5
+        echo "$run $sys -D $data_dir/$sys/${ref}_${pos}_pi${yaw}_q2 -Q 1 1 10 1 1 1 2 2 2 -R $ref $pos $yaw"
+        $run $sys -D $data_dir/$sys/${ref}_${pos}_pi${yaw}_q2 -Q 1 1 10 1 1 1 2 2 2 -R $ref $pos $yaw
+    done
 
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_1_5_2_6 -R wavy 1 5 2 6
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_1_5_4_6 -R wavy 1 5 4 6
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_2_5_2_6 -R wavy 2 5 2 6
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_2_4_5_4 -R wavy 2 4 5 4
+    ref=wavy
+    for params in 1,5,2,6 1,5,4,6 2,5,2,6 2,4,5,4
+    do
+        IFS=',' read amp1 amp2 amp3 amp4 << EOF
+$params
+EOF
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp1}_${amp2}_${amp3}_$amp4 -R $ref $amp1 $amp2 $amp3 $amp4"
+        $run $sys -k -D $data_dir/$sys/${ref}_${amp1}_${amp2}_${amp3}_$amp4 -R $ref $amp1 $amp2 $amp3 $amp4
 
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_1_5_2_6_q2 -Q 1 1 10 1 1 1 2 2 2  -R wavy 1 5 2 6
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_1_5_4_6_q2 -Q 1 1 10 1 1 1 2 2 2  -R wavy 1 5 4 6
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_2_5_2_6_q2 -Q 1 1 10 1 1 1 2 2 2  -R wavy 2 5 2 6
-python run_analysis.py -H -S m -k -m -o -D ~/data/ampc24/analysis/multirotor/wavy_2_4_5_4_q2 -Q 1 1 10 1 1 1 2 2 2  -R wavy 2 4 5 4
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp1}_${amp2}_${amp3}_${amp4}_q2 -Q 1 1 10 1 1 1 2 2 2 -R $ref $amp1 $amp2 $amp3 $amp4"
+        $run $sys -k -D $data_dir/$sys/${ref}_${amp1}_${amp2}_${amp3}_${amp4}_q2 -Q 1 1 10 1 1 1 2 2 2 -R $ref $amp1 $amp2 $amp3 $amp4
+    done
 
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp1_5 -R ramp1 5
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp1_10 -R ramp1 10
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp1_15 -R ramp1 15
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp1_20 -R ramp1 20
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp1_25 -R ramp1 25
+    ref=ramp1
+    for amp in 5 10 15 20 25
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
 
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp3_5 -R ramp3 5
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp3_6 -R ramp3 6
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp3_7 -R ramp3 7
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp3_8 -R ramp3 8
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp3_9 -R ramp3 9
-python run_analysis.py -H -S m -m -o -D ~/data/ampc24/analysis/multirotor/ramp3_10 -R ramp3 10
+    ref=ramp3
+    for amp in 5 6 7 8 9 10
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
+fi

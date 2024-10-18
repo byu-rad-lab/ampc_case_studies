@@ -3,6 +3,7 @@ from tabulate import tabulate
 
 import examples.single_link_arm.plotter as arm_plotter
 import examples.block_beam.plotter as beam_plotter
+import examples.cart_pendulum.plotter as pendulum_plotter
 import examples.multirotor.plotter as multirotor_plotter
 from parsing import getParsedArgs_plot
 
@@ -55,6 +56,9 @@ def plot(load_dir: str, headless: bool=False):
         n,m = 2,1
     elif system == 'blockbeam':
         app = beam_plotter.Plotter(fontsize)
+        n,m = 4,1
+    elif system == 'pendulum':
+        app = pendulum_plotter.Plotter(fontsize)
         n,m = 4,1
     elif system == 'multirotor':
         app = multirotor_plotter.Plotter(fontsize)
@@ -225,12 +229,12 @@ def plot(load_dir: str, headless: bool=False):
         print()
 
         pw3 = app.createPlotWindow()
-        pw3.plotMinCosts(k_list, aff_ueq_min_costs, aff_ueq_min_c, label='aff (ueq)')
         pw3.plotMinCosts(k_list, aff_uk_min_costs, aff_uk_min_c, label='aff (uk)')
+        pw3.plotMinCosts(k_list, aff_ueq_min_costs, aff_ueq_min_c, label='aff (ueq)')
         pw3.plotMinCosts(k_list, aff_xeq_min_costs, aff_xeq_min_c, label='aff (xeq)')
         pw3.plotMinCosts(k_list, lin_min_costs, lin_min_c, label='lin')
-        pw3.plotCvK(c_list, k_list, aff_ueq_costs)
         pw3.plotCvK(c_list, k_list, aff_uk_costs)
+        pw3.plotCvK(c_list, k_list, aff_ueq_costs)
         pw3.plotCvK(c_list, k_list, aff_xeq_costs)
         pw3.plotCvK(c_list, k_list, lin_costs)
 

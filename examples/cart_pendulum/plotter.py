@@ -218,4 +218,6 @@ class Plotter:
         return window
 
     def show(self):
+        for window in self.windows:
+            window.show()
         self.plot_app.show()

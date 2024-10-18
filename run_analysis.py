@@ -3,6 +3,7 @@ from tqdm import tqdm
 
 import examples.single_link_arm.simulator as arm_sim
 import examples.block_beam.simulator as beam_sim
+import examples.cart_pendulum.simulator as pendulum_sim
 import examples.multirotor.simulator as multirotor_sim
 import plot_analysis as plotter
 from parsing import getParsedArgs_run
@@ -16,6 +17,8 @@ def main():
         sim = arm_sim.getSimulator(args)
     elif args.system == 'blockbeam':
         sim = beam_sim.getSimulator(args)
+    elif args.system == 'pendulum':
+        sim = pendulum_sim.getSimulator(args)
     elif args.system == 'multirotor':
         sim = multirotor_sim.getSimulator(args)
     else:

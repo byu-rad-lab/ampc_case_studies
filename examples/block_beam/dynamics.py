@@ -27,14 +27,10 @@ class BlockBeam(model.ModelBase):
         '''
         Affinize continuous-time dynamics around affinization point.
 
-        Args:
-        x_p: affinization state (n,)
-        u_p: affinization input (m,)
+        :param (n,) x_p: affinization state (n,)
+        :param (m,) u_p: affinization input (m,)
 
-        Returns:
-        A: affinized state matrix (n, n)
-        B: affinized input matrix (n, m)
-        w: affinized constant term (n,)
+        :return: AffineModel(A, B, w)
         '''
         Cx1 = np.cos(x_p[1])
         inertia = self.beam_mass*self.len**2/3 + self.block_mass*x_p[0]**2
