@@ -11,42 +11,100 @@ from parsing import getParsedArgs_plot
 
 
 class MethodTable:
-    min_cost = []
-    k_best = []
-    c_best = []
-    k1_min_cost = []
-    c_at_k1 = []
-    nominal_cost = []
+    def __init__(self):
+        self.min_cost = [] # vary c,k
+        self.k_best = []
+        self.c_best = []
+        self.k1_min_cost = [] # vary c, k=1
+        self.c_at_k1 = []
+        self.nominal_cost = [] # c=0, k=1
+        self.c_reduction = []
+        self.c_improvement = []
+        self.c_times_better = []
+        self.k_reduction = []
+        self.k_improvement = []
+        self.k_times_better = []
+
+    def writeCSV(self, writer: csv.writer, method: str):
+        writer.writerow([f'{method} min cost'] + self.min_cost)
+        writer.writerow([f'{method} best k'] + self.k_best)
+        writer.writerow([f'{method} best c'] + self.c_best)
+        writer.writerow([f'{method} cost @ k1'] + self.k1_min_cost)
+        writer.writerow([f'{method} c @ k1'] + self.c_at_k1)
+        writer.writerow([f'{method} nominal cost'] + self.nominal_cost)
+        writer.writerow([f'{method} c % reduction'] + self.c_reduction)
+        writer.writerow([f'{method} c % improvement'] + self.c_improvement)
+        writer.writerow([f'{method} c X better'] + self.c_times_better)
 
 class AnalysisTable:
-    uk = MethodTable()
-    ueq = MethodTable()
-    xeq = MethodTable()
-    lin = MethodTable()
+    def __init__(self):
+        self.uk = MethodTable()
+        self.ueq = MethodTable()
+        self.xeq = MethodTable()
+        self.lin = MethodTable()
+        self.best_aff_cost = []
+        self.nominal_aff_cost = []
+        self.best_lin_cost = []
+        self.nominal_lin_cost = []
+        self.aff_improvement = []
+        self.aff_times_better = []
+        self.aff_reduction = []
+        self.best_lin_improvement = []
+        self.best_lin_times_better = []
+        self.best_lin_reduction = []
+        self.nom_lin_improvement = []
+        self.nom_lin_times_better = []
+        self.nom_lin_reduction = []
+        self.best_method = []
+
+    def writeCSV(self, write_dir: str, headers: list[str], system: str):
+        with open(f'{write_dir}/{system}_analysis.csv', 'w') as file:
+            writer = csv.writer(file)
+            writer.writerow([''] + headers)
+            self.uk.writeCSV(writer, 'aff (x0,u0)')
+            writer.writerow(['']*len(headers))
+            self.ueq.writeCSV(writer, 'aff (x0,ueq)')
+            writer.writerow(['']*len(headers))
+            self.xeq.writeCSV(writer, 'aff (xeq,u0)')
+            writer.writerow(['']*len(headers))
+            self.lin.writeCSV(writer, 'lin (xeq,ueq)')
+            writer.writerow(['']*len(headers))
+            writer.writerow(['best cost'] + self.best_aff_cost)
+            writer.writerow(['aff nominal cost'] + self.nominal_aff_cost)
+            writer.writerow(['lin best cost'] + self.best_lin_cost)
+            writer.writerow(['lin nominal cost'] + self.nominal_lin_cost)
+            writer.writerow([f'% improvement over nom aff'] + self.aff_improvement)
+            writer.writerow(['X better than nom aff'] + self.aff_times_better)
+            writer.writerow([f'% reduction over nom aff'] + self.aff_reduction)
+            writer.writerow([f'% improvement over best lin'] + self.best_lin_improvement)
+            writer.writerow(['X better than best lin'] + self.best_lin_times_better)
+            writer.writerow([f'% reduction over best lin'] + self.best_lin_reduction)
+            writer.writerow([f'% improvement over nom lin'] + self.nom_lin_improvement)
+            writer.writerow(['X better than nom lin'] + self.nom_lin_times_better)
+            writer.writerow([f'% reduction over nom lin'] + self.nom_lin_reduction)
+            writer.writerow(['best method'] + self.best_method)
+        return
 
 
 class SimData:
     def __init__(self, load_dir: str):
         self.load_dir = load_dir
         self.time = np.load(load_dir + 'time.npy')
-        self.costs = {
-            'aff_uk': np.load(load_dir + 'aff_uk_costs.npy'),
-            'aff_ueq': np.load(load_dir + 'aff_ueq_costs.npy'),
-            'aff_xeq': np.load(load_dir + 'aff_xeq_costs.npy'),
-            'lin': np.load(load_dir + 'lin_costs.npy')
-        }
-        self.states = {
-            'aff_uk': np.load(load_dir + 'aff_uk_states.npy'),
-            'aff_ueq': np.load(load_dir + 'aff_ueq_states.npy'),
-            'aff_xeq': np.load(load_dir + 'aff_xeq_states.npy'),
-            'lin': np.load(load_dir + 'lin_states.npy')
-        }
-        self.inputs = {
-            'aff_uk': np.load(load_dir + 'aff_uk_inputs.npy'),
-            'aff_ueq': np.load(load_dir + 'aff_ueq_inputs.npy'),
-            'aff_xeq': np.load(load_dir + 'aff_xeq_inputs.npy'),
-            'lin': np.load(load_dir + 'lin_inputs.npy')
-        }
+
+        self.uk_costs = np.load(load_dir + 'aff_uk_costs.npy')
+        self.ueq_costs = np.load(load_dir + 'aff_ueq_costs.npy')
+        self.xeq_costs = np.load(load_dir + 'aff_xeq_costs.npy')
+        self.lin_costs = np.load(load_dir + 'lin_costs.npy')
+
+        self.uk_states = np.load(load_dir + 'aff_uk_states.npy')
+        self.ueq_states = np.load(load_dir + 'aff_ueq_states.npy')
+        self.xeq_states = np.load(load_dir + 'aff_xeq_states.npy')
+        self.lin_states = np.load(load_dir + 'lin_states.npy')
+
+        self.uk_inputs = np.load(load_dir + 'aff_uk_inputs.npy')
+        self.ueq_inputs = np.load(load_dir + 'aff_ueq_inputs.npy')
+        self.xeq_inputs = np.load(load_dir + 'aff_xeq_inputs.npy')
+        self.lin_inputs = np.load(load_dir + 'lin_inputs.npy')
 
         self.ref_states = np.load(load_dir + 'ref_states.npy')
         self.Q = np.load(load_dir + 'Q.npy')
@@ -55,7 +113,7 @@ class SimData:
         with open(load_dir + 'system.txt', 'r') as f:
             self.system = f.readline()
 
-        self.num_c = len(self.costs['aff_uk'][0])
+        self.num_c = len(self.uk_costs[0])
         self.c_list = np.linspace(0, 1, self.num_c)
 
 
@@ -64,151 +122,102 @@ def main():
     systems = ['arm', 'beam', 'pendulum', 'multirotor']
     ref_cmds = {}
 
-    def createTableData():
-        table = {}
-        table['min_cost'] = []
-        table['k_best'] = []
-        table['c_best'] = []
-        table['k1_min_cost'] = []
-        table['c_at_k1'] = []
-        table['nominal_cost'] = []
-
-
     for system in systems:
         refs = os.listdir(base_dir + system)
+        refs.sort()
         ref_cmds[system] = refs
-        aff_uk_min_cost = []
-        aff_uk_k_at_min = []
-        aff_uk_c_at_min = []
-        aff_uk_k1_min_cost = []
-        aff_uk_c_at_k1 = []
-        aff_uk_nominal_cost = []
-        aff_uk_c_improvement = []
-        aff_uk_k_improvement = []
-        aff_uk_ck_improvement = []
 
-        aff_ueq_min_cost = []
-        aff_ueq_k_at_min = []
-        aff_ueq_c_at_min = []
-        aff_ueq_k1_min_cost = []
-        aff_ueq_c_at_k1 = []
-        aff_ueq_nominal_cost = []
-        aff_ueq_c_improvement = []
-        aff_ueq_k_improvement = []
-        aff_ueq_ck_improvement = []
-
-        aff_xeq_min_cost = []
-        aff_xeq_k_at_min = []
-        aff_xeq_c_at_min = []
-        aff_xeq_k1_min_cost = []
-        aff_xeq_c_at_k1 = []
-        aff_xeq_nominal_cost = []
-        aff_xeq_c_improvement = []
-        aff_xeq_k_improvement = []
-        aff_xeq_ck_improvement = []
-
-        lin_min_cost = []
-        lin_k_at_min = []
-        lin_c_at_min = []
-        lin_k1_min_cost = []
-        lin_c_at_k1 = []
-        lin_nominal_cost = []
-        lin_c_improvement = []
-        lin_k_improvement = []
-        lin_ck_improvement = []
-
-        best_aff_cost = []
-        nominal_aff_cost = []
-        best_lin_cost = []
-        nominal_lin_cost = []
-        aff_pt_improvement = []
-        aff_best_lin_improvement = []
-        aff_nom_lin_improvement = []
-        best_method = []
-
+        table = AnalysisTable()
 
         for ref in refs:
             load_dir = f'{base_dir}{system}/{ref}/'
-            time = np.load(load_dir + 'time.npy')
-
             data = SimData(load_dir)
-            # aff_uk_costs = np.load(load_dir + 'aff_uk_costs.npy')
-            # aff_uk_states = np.load(load_dir + 'aff_uk_states.npy')
-            # aff_uk_inputs = np.load(load_dir + 'aff_uk_inputs.npy')
-
-            # aff_ueq_costs = np.load(load_dir + 'aff_ueq_costs.npy')
-            # aff_ueq_states = np.load(load_dir + 'aff_ueq_states.npy')
-            # aff_ueq_inputs = np.load(load_dir + 'aff_ueq_inputs.npy')
-
-            # aff_xeq_costs = np.load(load_dir + 'aff_xeq_costs.npy')
-            # aff_xeq_states = np.load(load_dir + 'aff_xeq_states.npy')
-            # aff_xeq_inputs = np.load(load_dir + 'aff_xeq_inputs.npy')
-
-            # lin_costs = np.load(load_dir + 'lin_costs.npy')
-            # lin_states = np.load(load_dir + 'lin_states.npy')
-            # lin_inputs = np.load(load_dir + 'lin_inputs.npy')
-
-            # xr_hist = np.load(load_dir + 'ref_states.npy')
-            # k_list = np.load(load_dir + 'k_list.npy')
-            # num_c = len(aff_uk_costs[0])
-            # c_list = np.linspace(0, 1, num_c)
-
-            k = 0
-            aff_uk_idx = np.argmin(aff_uk_costs[k])
-            aff_uk_mc = aff_uk_costs[k,aff_uk_idx]
-            aff_uk_c0 = aff_uk_costs[k,0]
-            aff_uk_c_improve = (1 - aff_uk_mc / aff_uk_c0) * 100
-            aff_uk_c_at_k1.append(c_list[aff_uk_idx])
-            aff_uk_k1_min_cost.append(aff_uk_mc)
-            aff_uk_nominal_cost.append(aff_uk_c0)
-            aff_uk_c_improvement.append(aff_uk_c_improve)
-
-            aff_ueq_idx = np.argmin(aff_ueq_costs[k])
-            aff_ueq_mc = aff_ueq_costs[k,aff_ueq_idx]
-            aff_ueq_c0 = aff_ueq_costs[k,0]
-            aff_ueq_c_improve = (1 - aff_ueq_mc / aff_ueq_c0) * 100
-            aff_ueq_c_at_k1.append(c_list[aff_ueq_idx])
-            aff_ueq_k1_min_cost.append(aff_ueq_mc)
-            aff_ueq_nominal_cost.append(aff_ueq_c0)
-            aff_ueq_c_improvement.append(aff_ueq_c_improve)
-
-            aff_xeq_idx = np.argmin(aff_xeq_costs[k])
-            aff_xeq_mc = aff_xeq_costs[k,aff_xeq_idx]
-            aff_xeq_c0 = aff_xeq_costs[k,0]
-            aff_xeq_c_improve = (1 - aff_xeq_mc / aff_xeq_c0) * 100
-            aff_xeq_c_at_k1.append(c_list[aff_xeq_idx])
-            aff_xeq_k1_min_cost.append(aff_xeq_mc)
-            aff_xeq_nominal_cost.append(aff_xeq_c0)
-            aff_xeq_c_improvement.append(aff_xeq_c_improve)
-
-            lin_idx = np.argmin(lin_costs[k])
-            lin_mc = lin_costs[k,lin_idx]
-            lin_c0 = lin_costs[k,0]
-            lin_c_improve = (1 - lin_mc / lin_c0) * 100
-            lin_c_at_k1.append(c_list[lin_idx])
-            lin_k1_min_cost.append(lin_mc)
-            lin_nominal_cost.append(lin_c0)
-            lin_c_improvement.append(lin_c_improve)
-
-            methods = ['aff (x0,u0)', 'aff (x0,ueq)', 'aff (xeq,u0)', 'lin (xeq,ueq)']
-            aff_mc = np.array([aff_uk_mc, aff_ueq_mc, aff_xeq_mc])
-            aff_c0 = np.array([aff_uk_c0, aff_ueq_c0, aff_xeq_c0])
-            # aff_c_improve = (1 - aff_mc / aff_c0) * 100
-            # lin_c_improve = (1 - lin_mc / lin_c0) * 100
-            idx = np.argmin(aff_mc)
-            best_aff = aff_mc[idx]
-
-
-        # print(os.listdir(base_dir + system))
-    print(ref_cmds)
+            cAnalysis(data, table)
+            kAnalysis(data, table)
+            summaryAnalysis(data, table)
+        table.writeCSV(base_dir, refs, system)
     return
 
-def cAnalysis(costs):
+def cAnalysis(data: SimData, table: AnalysisTable):
     k = 0
-    c = np.argmin(costs[k])
-    cost_min = costs[k,c]
-    cost_c0 = costs[k,0]
-    return getImprovement(cost_min, cost_c0)
+    all_costs = [data.uk_costs, data.ueq_costs, data.xeq_costs, data.lin_costs]
+    tables = [table.uk, table.ueq, table.xeq, table.lin]
+    for i in range(4):
+        costs = all_costs[i]
+        table: MethodTable = tables[i]
+
+        c_idx = np.argmin(costs[k])
+        cost_min = costs[k,c_idx]
+        table.k1_min_cost.append(cost_min)
+        table.c_at_k1.append(data.c_list[c_idx])
+
+        cost_c0 = costs[k,0]
+        table.nominal_cost.append(cost_c0)
+
+        table.c_reduction.append(getReduction(cost_min, cost_c0))
+        table.c_improvement.append(getImprovement(cost_min, cost_c0))
+        table.c_times_better.append(getTimesBetter(cost_min, cost_c0))
+    return
+
+def kAnalysis(data: SimData, table: AnalysisTable):
+    all_costs = [data.uk_costs, data.ueq_costs, data.xeq_costs, data.lin_costs]
+    tables = [table.uk, table.ueq, table.xeq, table.lin]
+    for i in range(4):
+        costs = all_costs[i]
+        table: MethodTable = tables[i]
+
+        min_cost = np.min(costs)
+        idx = np.argmin(costs)
+        k_idx = idx // costs.shape[1]
+        c_idx = idx % costs.shape[1]
+        assert min_cost == costs[k_idx, c_idx]
+        table.min_cost.append(min_cost)
+        table.k_best.append(k_idx+1)
+        table.c_best.append(data.c_list[c_idx])
+
+        nominal_cost = costs[0,0]
+        table.k_improvement.append(getImprovement(min_cost, nominal_cost))
+        table.k_reduction.append(getReduction(min_cost, nominal_cost))
+        table.k_times_better.append(getTimesBetter(min_cost, nominal_cost))
+    return
+
+def summaryAnalysis(data: SimData, table: AnalysisTable):
+    min_costs = np.array([table.uk.min_cost[-1], table.ueq.min_cost[-1],
+                          table.xeq.min_cost[-1], table.lin.min_cost[-1]])
+    uk_k1_cost = table.uk.k1_min_cost[-1]
+
+    best = np.min(min_costs) # best of all 4 methods
+    lin_best = min_costs[-1] # best using lin (xeq, ueq)
+    aff_nominal = table.uk.nominal_cost[-1] # aff (x0, u0) @ c=0, k=1
+    lin_nominal = table.lin.nominal_cost[-1] # lin (xeq, ueq) @ c=0, k=1
+
+    table.best_aff_cost.append(best)
+    table.best_lin_cost.append(lin_best)
+    table.nominal_aff_cost.append(aff_nominal)
+    table.nominal_lin_cost.append(lin_nominal)
+
+    table.aff_improvement.append(getImprovement(best, aff_nominal))
+    table.aff_times_better.append(getTimesBetter(best, aff_nominal))
+    table.aff_reduction.append(getReduction(best, aff_nominal))
+
+    table.best_lin_improvement.append(getImprovement(best, lin_best))
+    table.best_lin_times_better.append(getTimesBetter(best, lin_best))
+    table.best_lin_reduction.append(getReduction(best, lin_best))
+
+    table.nom_lin_improvement.append(getImprovement(best, lin_nominal))
+    table.nom_lin_times_better.append(getTimesBetter(best, lin_nominal))
+    table.nom_lin_reduction.append(getReduction(best, lin_nominal))
+
+    method = np.argmin(min_costs)
+    if method == 0:
+        table.best_method.append('aff (x0,u0)')
+    elif method == 1:
+        table.best_method.append('aff (x0,ueq)')
+    elif method == 2:
+        table.best_method.append('aff (xeq,u0)')
+    else:
+        table.best_method.append('lin (xeq,ueq)')
+    return
 
 def getImprovement(best, nominal):
     return (nominal/best - 1) * 100
@@ -217,7 +226,7 @@ def getTimesBetter(best, nominal):
     return nominal/best
 
 def getReduction(best, nominal):
-    return (1 - best / nominal) * 100
+    return (1 - best/nominal) * 100
 
 
 
