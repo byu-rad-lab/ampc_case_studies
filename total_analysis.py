@@ -119,41 +119,48 @@ class SimData:
 
 def main():
     base_dir = f'{os.environ["HOME"]}/data/ampc24/analysis/'
-    systems = ['arm', 'beam', 'pendulum', 'multirotor']
+    save_dir = f'{base_dir}summary'
+    systems = ['arm', 'beam', 'pendulum', 'pendulumz', 'multirotor']
     # ref_cmds = {}
     arm_steps = ['step_30', 'step_60', 'step_120', 'step_180', 'step_270']
     arm_ramps = ['ramp_2pi_10', 'ramp_2pi_7.5', 'ramp_2pi_5', 'ramp_2pi_2.5']
     arm_cos_60s = ['cos_60_2', 'cos_60_3', 'cos_60_4']
     arm_cos_90s = ['cos_90_2', 'cos_90_3', 'cos_90_4']
+
     beam_steps = ['step_0.1', 'step_0.2', 'step_0.3', 'step_0.4']
-    beam_ramps = ['ramp_0.4']
+    beam_ramps = ['ramp_0.2', 'ramp_0.3', 'ramp_0.4']
     beam_cos = ['cos_0.2_1', 'cos_0.2_2', 'cos_0.2_3', 'cos_0.2_4', 'cos_0.2_5']
-    pendulum_steps = ['step_1', 'step_5', 'step_10', 'step_15', 'step_20', 'step_30', 'step_45']
-    pendulum_stepzs = ['stepz_1', 'stepz_2', 'stepz_5', 'stepz_10']
-    pendulum_cos_5s = ['cos_5_1', 'cos_5_2', 'cos_5_3', 'cos_5_4']
+
+    # pendulum_steps = ['step_1', 'step_5', 'step_10', 'step_15', 'step_20', 'step_30', 'step_45']
+    pendulum_steps = ['step_5', 'step_15', 'step_30', 'step_45']
+    # pendulum_cos_5s = ['cos_5_1', 'cos_5_2', 'cos_5_3', 'cos_5_4']
     pendulum_cos_15s = ['cos_15_1', 'cos_15_2', 'cos_15_3', 'cos_15_4']
     pendulum_cos_25s = ['cos_25_1', 'cos_25_2', 'cos_25_3', 'cos_25_4']
-    pendulum_cosz_0_5s = ['cosz_0.5_1', 'cosz_0.5_2', 'cosz_0.5_3', 'cosz_0.5_4']
-    pendulum_cosz_1s = ['cosz_1_1', 'cosz_1_2', 'cosz_1_3', 'cosz_1_4']
-    pendulum_cosz_2s = ['cosz_2_1', 'cosz_2_2', 'cosz_2_3', 'cosz_2_4']
-    pendulum_cosz_5s = ['cosz_5_1', 'cosz_5_2', 'cosz_5_3', 'cosz_5_4']
-    pendulum_ramps = ['ramp_1', 'ramp_5', 'ramp_10', 'ramp_15', 'ramp_30', 'ramp_45']
-    pendulum_rampzs = ['rampz_1', 'rampz_2', 'rampz_3', 'rampz_4', 'rampz_5']
-    multirotor_steps = ['step_1_pi2', 'step_2_pi1.5', 'step_5_pi', 'step_10_2pi']
+    # pendulum_ramps = ['ramp_1', 'ramp_5', 'ramp_10', 'ramp_15', 'ramp_30', 'ramp_45']
+    pendulum_ramps = ['ramp_5', 'ramp_15', 'ramp_30', 'ramp_45']
+
+    pendulumz_steps = ['stepz_1', 'stepz_2', 'stepz_5', 'stepz_10']
+    # pendulumz_cos_0_5s = ['cosz_0.5_1', 'cosz_0.5_2', 'cosz_0.5_3', 'cosz_0.5_4']
+    # pendulumz_cos_1s = ['cosz_1_1', 'cosz_1_2', 'cosz_1_3', 'cosz_1_4']
+    pendulumz_cos_2s = ['cosz_2_1', 'cosz_2_2', 'cosz_2_3', 'cosz_2_4']
+    pendulumz_cos_5s = ['cosz_5_1', 'cosz_5_2', 'cosz_5_3', 'cosz_5_4']
+    # pendulumz_ramps = ['rampz_1', 'rampz_2', 'rampz_3', 'rampz_4', 'rampz_5']
+    pendulumz_ramps = ['rampz_2', 'rampz_3', 'rampz_4', 'rampz_5']
+
+    # multirotor_steps = ['step_1_pi2', 'step_2_pi1.5', 'step_5_pi', 'step_10_2pi']
     multirotor_steps_q2 = ['step_1_pi2_q2', 'step_2_pi1.5_q2', 'step_5_pi_q2', 'step_10_2pi_q2']
-    multirotor_wavy = ['wavy_1_5_2_6', 'wavy_1_5_4_6', 'wavy_2_5_2_6', 'wavy_2_4_5_4']
+    # multirotor_wavy = ['wavy_1_5_2_6', 'wavy_1_5_4_6', 'wavy_2_5_2_6', 'wavy_2_4_5_4']
     multirotor_wavy_q2 = ['wavy_1_5_2_6_q2', 'wavy_1_5_4_6_q2', 'wavy_2_5_2_6_q2', 'wavy_2_4_5_4_q2']
     multirotor_ramp1s = ['ramp1_5', 'ramp1_10', 'ramp1_15', 'ramp1_20', 'ramp1_25']
-    multirotor_ramp3s = ['ramp3_5', 'ramp3_6', 'ramp3_7', 'ramp3_8', 'ramp3_9', 'ramp3_10']
+    # multirotor_ramp3s = ['ramp3_5', 'ramp3_6', 'ramp3_7', 'ramp3_8', 'ramp3_9', 'ramp3_10']
+    multirotor_ramp3s = ['ramp3_6', 'ramp3_7', 'ramp3_8', 'ramp3_9', 'ramp3_10']
+
     ref_cmds = {
         'arm': arm_steps + arm_ramps + arm_cos_60s + arm_cos_90s,
         'beam': beam_steps + beam_ramps + beam_cos,
-        'pendulum': [*pendulum_steps, *pendulum_stepzs,
-                    *pendulum_cos_5s, *pendulum_cos_15s, *pendulum_cos_25s,
-                    *pendulum_cosz_0_5s, *pendulum_cosz_1s, *pendulum_cosz_2s, *pendulum_cosz_5s,
-                    *pendulum_ramps, *pendulum_rampzs],
-        'multirotor': [*multirotor_steps, *multirotor_steps_q2,
-                       *multirotor_wavy, *multirotor_wavy_q2,
+        'pendulum': pendulum_steps + pendulum_cos_15s + pendulum_cos_25s + pendulum_ramps,
+        'pendulumz': pendulumz_steps + pendulumz_cos_2s + pendulumz_cos_5s + pendulumz_ramps,
+        'multirotor': [*multirotor_steps_q2, *multirotor_wavy_q2,
                        *multirotor_ramp1s, *multirotor_ramp3s]
     }
 

@@ -18,10 +18,10 @@ if [ $run_arm -eq 1 ]; then
     done
 
     ref=ramp
-    for amp in 2.5 5 7.5 10
+    for scale in 2.5 5 7.5 10
     do
-        echo "$run $sys -k -D $data_dir/$sys/${ref}_2pi_$amp -R $ref $amp"
-        $run $sys -k -D $data_dir/$sys/${ref}_2pi_$amp -R $ref $amp
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_2pi_$scale -R $ref $scale"
+        $run $sys -k -D $data_dir/$sys/${ref}_2pi_$scale -R $ref $scale
     done
 
     ref=cos
@@ -47,14 +47,14 @@ if [ $run_pendulum -eq 1 ]; then
     done
 
     ref=step
-    for amp in 1 5 10 15 20 30 45
+    for amp in 5 15 30 45
     do
         echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
         $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
     done
 
     ref=cosz
-    for amp in 0.5 1 2 5
+    for amp in 2 5
     do
         for periods in 1 2 3 4
         do
@@ -64,7 +64,7 @@ if [ $run_pendulum -eq 1 ]; then
     done
 
     ref=cos
-    for amp in 5 15 25
+    for amp in 15 25
     do
         for periods in 1 2 3 4
         do
@@ -74,14 +74,14 @@ if [ $run_pendulum -eq 1 ]; then
     done
 
     ref=rampz
-    for amp in 1 2 3 4 5
+    for amp in 2 3 4 5
     do
         echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
         $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
     done
 
     ref=ramp
-    for amp in 1 5 10 15 30
+    for amp in 5 15 30 45
     do
         echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
         $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
@@ -100,10 +100,10 @@ if [ $run_beam -eq 1 ]; then
     done
 
     ref=ramp
-    for amp in 0.4
+    for d in 0.2 0.3 0.4
     do
-        echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
-        $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_$d -R $ref $d"
+        $run $sys -k -D $data_dir/$sys/${ref}_$d -R $ref $d
     done
 
     ref=cos

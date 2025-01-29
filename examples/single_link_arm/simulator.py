@@ -128,9 +128,10 @@ def getSimulator(args):
         default_params = [10.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
-        vel = 2*np.pi / params[0]
+        s = params[0]
+        vel = 2*np.pi / s
         traj_fn = traj.Ramp(velocity=vel, offset=x0[0], horizon=T, dt=dt)
-        print(f'ref = ramp: vel = 2pi/{params[0]:.1f}')
+        print(f'ref = ramp: vel = 2pi/{s[0]:.1f}')
     else:
         raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
 
