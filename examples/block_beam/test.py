@@ -28,28 +28,30 @@ A = f.jacobian(x)
 
 #%%
 
-# sp.pprint(A[0,:])
-# sp.pprint(A[1,:])
-# sp.pprint(A[2,0])
-# sp.pprint(A[2,1])
-# sp.pprint(A[2,2])
-# sp.pprint(A[2,3])
+sp.pprint(A[:2,:])
+
+#%%
+
+sp.pprint(A[2,:])
+
+#%%
+
 # sp.pprint(A[3,:])
-sp.pprint(A[3,0])
+# sp.pprint(A[3,0])
 # sp.pprint(A[3,1])
 # sp.pprint(A[3,2])
-# sp.pprint(A[3,3])
+sp.pprint(A[3,3])
 
 #%%
 B = f.diff(u)
 B
 # %%
-
-A.subs({x[1]: 0, x[2]: 0, x[3]: 0})
+x_eq = {x[1]: 0, x[2]: 0, x[3]: 0}
+A.subs(x_eq)
 
 # %%
 
-B.subs({x[1]: 0, x[2]: 0, x[3]: 0})
+B.subs(x_eq)
 
 # %%
 state = {x[0]: 0.4, x[1]: 0, x[2]: 0, x[3]: 0}
