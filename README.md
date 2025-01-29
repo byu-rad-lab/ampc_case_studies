@@ -17,7 +17,7 @@ This repo requires the following python packages to be on the python path:
 - `plot_analysis.py`
   - Plots results from a single approximation point analysis.
 - `run_all.sh`
-  - Runs all of the approximation point analyses used in the paper.
+  - Runs `run_analysis.py` for each system and reference trajectory combination used in the paper.
 - `summary_analysis.py`
   - Performs a summary analysis on all of the data from `run_all.sh`.
 - `summary_plots.py`
