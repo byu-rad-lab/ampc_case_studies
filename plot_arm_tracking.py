@@ -1,6 +1,6 @@
 import numpy as np
 
-from examples.single_link_arm.plotter import Plotter
+from case_studies.single_link_arm.plotter import Plotter
 from parsing import getParsedArgs_plot
 
 

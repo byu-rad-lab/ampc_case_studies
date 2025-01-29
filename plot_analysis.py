@@ -1,10 +1,10 @@
 import numpy as np
 from tabulate import tabulate
 
-import examples.single_link_arm.plotter as arm_plotter
-import examples.block_beam.plotter as beam_plotter
-import examples.cart_pendulum.plotter as pendulum_plotter
-import examples.multirotor.plotter as multirotor_plotter
+import case_studies.single_link_arm.plotter as arm_plotter
+import case_studies.block_beam.plotter as beam_plotter
+import case_studies.cart_pendulum.plotter as pendulum_plotter
+import case_studies.multirotor.plotter as multirotor_plotter
 from parsing import getParsedArgs_plot
 
 

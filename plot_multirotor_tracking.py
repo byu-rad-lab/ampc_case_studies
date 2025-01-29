@@ -1,6 +1,6 @@
 import numpy as np
 
-from examples.multirotor.plotter import Plotter
+from case_studies.multirotor.plotter import Plotter
 from parsing import getParsedArgs_plot
 
 

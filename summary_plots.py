@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import pickle
 
-from examples.plot_application import PlotApplication, TabbedWindow, FigureSpacing
+from case_studies.plot_application import PlotApplication, TabbedWindow, FigureSpacing
 
 import matplotlib
 matplotlib.rcParams['axes.formatter.limits'] = (-3, 3) # display 3 sig figs

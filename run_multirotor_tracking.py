@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 
-import examples.multirotor.simulator as Simulator
+import case_studies.multirotor.simulator as Simulator
 import plot_multirotor_tracking as plotter
 from parsing import getParsedArgs_run
 

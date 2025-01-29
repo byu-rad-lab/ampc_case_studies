@@ -1,10 +1,10 @@
 import numpy as np
 from tqdm import tqdm
 
-import examples.single_link_arm.simulator as arm_sim
-import examples.block_beam.simulator as beam_sim
-import examples.cart_pendulum.simulator as pendulum_sim
-import examples.multirotor.simulator as multirotor_sim
+import case_studies.single_link_arm.simulator as arm_sim
+import case_studies.block_beam.simulator as beam_sim
+import case_studies.cart_pendulum.simulator as pendulum_sim
+import case_studies.multirotor.simulator as multirotor_sim
 import plot_analysis as plotter
 from parsing import getParsedArgs_run
 

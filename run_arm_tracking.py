@@ -1,6 +1,6 @@
 import numpy as np
 
-import examples.single_link_arm.simulator as simulator
+import case_studies.single_link_arm.simulator as simulator
 from parsing import getParsedArgs_run
 import plot_arm_tracking as plotter
 

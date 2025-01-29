@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import tqdm
 
-from examples.block_beam.animation import Animation
-from examples.tabbed_plot_window import TabbedPlotWindow
+from case_studies.block_beam.animation import Animation
+from case_studies.tabbed_plot_window import TabbedPlotWindow
 from parsing import getParsedArgs_plot
 
 
