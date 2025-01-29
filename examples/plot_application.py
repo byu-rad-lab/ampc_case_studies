@@ -87,8 +87,9 @@ class TabbedWindow:
 
 
 class PlotApplication:
-    def __init__(self, fontsize: int=12):
+    def __init__(self, fontsize: int=10):
         matplotlib.rcParams['font.size'] = fontsize
+        matplotlib.rcParams['legend.fontsize'] = fontsize - 1
         self.app = QApplication(sys.argv)
         self.windows: list[TabbedWindow] = []
 
@@ -96,10 +97,13 @@ class PlotApplication:
         self.windows.append(window)
         window.show()
 
-    def show(self):
-        for win in self.windows:
-            for fig in win.figure_handles:
-                fig.tight_layout()
+    def show(self, tight_layout: bool = True):
+        if tight_layout:
+            for win in self.windows:
+                for i,fig in enumerate(win.figure_handles):
+                    win.tabs.setCurrentIndex(i) # tab has to be active to apply tight layout
+                    fig.tight_layout()
+                win.tabs.setCurrentIndex(0)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.app.exec() # exec_() is for PyQt < 5 and Python < 3. Use exec now
 
