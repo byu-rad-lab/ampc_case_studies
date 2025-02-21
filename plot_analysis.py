@@ -67,7 +67,7 @@ def plot(load_dir: str, headless: bool=False):
         raise ValueError(f'Unknown system: {system}')
 
     ######## C Analysis ########
-    pw = app.createPlotWindow()
+    pw = app.createPlotWindow('C Analysis')
     num_c = len(aff_uk_costs[0])
     c_list = np.linspace(0, 1, num_c)
     k = 0
@@ -137,7 +137,7 @@ def plot(load_dir: str, headless: bool=False):
 
     # app.addWindow(pw)
 
-    pw2 = app.createPlotWindow()
+    pw2 = app.createPlotWindow('Best Base Points from C Analysis')
     pw2.plotStateLine(time, aff_uk_states[k,aff_uk_idx], label=f'aff (uk): c = {c_list[aff_uk_idx]:.1f}')
     pw2.plotStateLine(time, aff_ueq_states[k,aff_ueq_idx], label=f'aff (ueq): c = {c_list[aff_ueq_idx]:.1f}')
     pw2.plotStateLine(time, aff_xeq_states[k,aff_xeq_idx], label=f'aff (xeq): c = {c_list[aff_xeq_idx]:.1f}')
@@ -228,7 +228,7 @@ def plot(load_dir: str, headless: bool=False):
         print(f'Improvement from affinization: aff ({best}) by {aff_improve:.2f}%')
         print()
 
-        pw3 = app.createPlotWindow()
+        pw3 = app.createPlotWindow('K Analysis')
         pw3.plotMinCosts(k_list, aff_uk_min_costs, aff_uk_min_c, label='aff (uk)')
         pw3.plotMinCosts(k_list, aff_ueq_min_costs, aff_ueq_min_c, label='aff (ueq)')
         pw3.plotMinCosts(k_list, aff_xeq_min_costs, aff_xeq_min_c, label='aff (xeq)')
@@ -242,7 +242,9 @@ def plot(load_dir: str, headless: bool=False):
 
 
     if headless:
-        app.plot_app.pause(0.5)
+        # app.plot_app.applyTightLayout()
+        # app.plot_app.pause(0.5)
+        app.pause(0.5)
     else:
         app.show()
 

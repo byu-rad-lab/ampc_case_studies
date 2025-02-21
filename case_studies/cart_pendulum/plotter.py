@@ -5,12 +5,12 @@ from ..plot_application import PlotApplication, TabbedWindow, FigureSpacing
 
 
 class PlotWindow:
-    def __init__(self, legend: bool=True, deg: bool=True,
+    def __init__(self, name: str, legend: bool=True, deg: bool=True,
                  fontsize: int=12, fig_size: tuple[int,int]=(800,600)):
         self.legend = legend
         self.deg = deg
         self.legend_fontsize = fontsize - 4
-        self.window = TabbedWindow('Block Beam Simulation Data', fig_size)
+        self.window = TabbedWindow(name, fig_size)
         self.tabs = []
 
     def _setupCostPlot(self):
@@ -167,9 +167,10 @@ class PlotWindow:
                 ax: list[plt.Axes] = self.mincost_ax
                 ax[0].legend(fontsize=leg_fontsize)
                 ax[1].legend(fontsize=leg_fontsize)
-                ax: list[plt.Axes] = self.cvk_ax
-                ax[0].legend(fontsize=leg_fontsize)
-                ax[1].legend(fontsize=leg_fontsize)
+                if 6 > len(self.cvk_ax[0].get_lines()) > 1:
+                    ax: list[plt.Axes] = self.cvk_ax
+                    ax[0].legend(fontsize=leg_fontsize)
+                    ax[1].legend(fontsize=leg_fontsize)
             self.mincost_fig.tight_layout()
         if 'c vs k' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('c vs k'))
@@ -210,14 +211,19 @@ class Plotter:
         self.plot_app.addWindow(window.window)
         window.show()
 
-    def createPlotWindow(self) -> PlotWindow:
-        window = PlotWindow(self.legend, self.deg, self.fontsize, self.fig_size)
+    def createPlotWindow(self, name: str='Robot Arm Simulation Data') -> PlotWindow:
+        window = PlotWindow(name, self.legend, self.deg, self.fontsize, self.fig_size)
         self.windows.append(window)
         self.plot_app.addWindow(window.window)
-        window.show()
+        # window.show()
         return window
 
     def show(self):
         for window in self.windows:
             window.show()
         self.plot_app.show()
+
+    def pause(self, n_sec: int):
+        for window in self.windows:
+            window.show()
+        self.plot_app.pause(n_sec)

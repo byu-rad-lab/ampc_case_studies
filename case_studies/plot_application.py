@@ -97,13 +97,21 @@ class PlotApplication:
         self.windows.append(window)
         window.show()
 
+    def applyTightLayout(self):
+        for win in self.windows:
+            for i,fig in enumerate(win.figure_handles):
+                win.tabs.setCurrentIndex(i) # tab has to be active to apply tight layout
+                fig.tight_layout()
+            win.tabs.setCurrentIndex(0)
+
     def show(self, tight_layout: bool = True):
         if tight_layout:
-            for win in self.windows:
-                for i,fig in enumerate(win.figure_handles):
-                    win.tabs.setCurrentIndex(i) # tab has to be active to apply tight layout
-                    fig.tight_layout()
-                win.tabs.setCurrentIndex(0)
+            self.applyTightLayout()
+            # for win in self.windows:
+            #     for i,fig in enumerate(win.figure_handles):
+            #         win.tabs.setCurrentIndex(i) # tab has to be active to apply tight layout
+            #         fig.tight_layout()
+            #     win.tabs.setCurrentIndex(0)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.app.exec() # exec_() is for PyQt < 5 and Python < 3. Use exec now
 
