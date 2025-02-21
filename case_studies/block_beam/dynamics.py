@@ -33,18 +33,19 @@ class BlockBeam(model.ModelBase):
         :return: AffineModel(A, B, w)
         '''
         Cx1 = np.cos(x_p[1])
+        Sx1 = np.sin(x_p[1])
         inertia = self.beam_mass*self.len**2/3 + self.block_mass*x_p[0]**2
 
-        num2 = -(self.g*self.block_mass*Cx1 + 2*self.block_mass*x_p[2]*x_p[3])
-        num1 = -0.5*self.g*self.len*self.beam_mass*Cx1
-        num1 += -self.g*self.block_mass*x_p[0]*Cx1 + self.len*u_p[0]*Cx1
+        num2 = self.g*self.block_mass*Cx1 + 2*self.block_mass*x_p[2]*x_p[3]
+        num1 = -0.5*self.beam_mass*self.g*self.len*Cx1
+        num1 += -self.block_mass*self.g*x_p[0]*Cx1 + self.len*u_p[0]*Cx1
         num1 -= 2*self.block_mass*x_p[0]*x_p[2]*x_p[3]
         num1 *= 2*self.block_mass*x_p[0]
-        dx3_x0 = -num1 / inertia**2 + num2 / inertia
+        dx3_x0 = -num1 / inertia**2 - num2 / inertia
 
-        num1 = 0.5*self.g*self.len*self.beam_mass*np.sin(x_p[1])
-        num1 += self.g*self.block_mass*x_p[0]*np.sin(x_p[1])
-        num1 -= self.len*u_p[0]*np.sin(x_p[1])
+        num1 = 0.5*self.beam_mass*self.g*self.len*Sx1
+        num1 += self.block_mass*self.g*x_p[0]*Sx1
+        num1 -= self.len*u_p[0]*Sx1
         dx3_x1 = num1 / inertia
 
         num1 = -2*self.block_mass*x_p[0]*x_p[3]
@@ -55,7 +56,7 @@ class BlockBeam(model.ModelBase):
 
         A = np.array([[0, 0, 1, 0],
                       [0, 0, 0, 1],
-                      [x_p[3]**2, -self.g*np.cos(x_p[1]), 0, 2*x_p[0]*x_p[2]],
+                      [x_p[3]**2, -self.g*Cx1, 0, 2*x_p[0]*x_p[3]],
                       [dx3_x0, dx3_x1, dx3_x2, dx3_x3]])
         B = np.array([[0],
                       [0],
@@ -82,11 +83,7 @@ class BlockBeam(model.ModelBase):
         # sys = self.affinize(x_eq, u_eq)
 
         inertia = self.beam_mass*self.len**2/3 + self.block_mass*x_eq[0]**2
-        num1 = self.g*self.block_mass
-        num2 = -0.5*self.g*self.len*self.beam_mass
-        num2 += -self.g*self.block_mass*x_eq[0] + self.len*u_eq[0]
-        num2 *= 2*self.block_mass*x_eq[0]
-        dx3_x0 = -(num1/inertia + num2/inertia**2)
+        dx3_x0 = -self.block_mass*self.g/inertia
 
         A = np.zeros((4,4))
         A[0,2] = 1
