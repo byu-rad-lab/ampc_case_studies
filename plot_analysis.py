@@ -10,6 +10,7 @@ from parsing import getParsedArgs_plot
 
 def main():
     load_dir = '/tmp/ampc24/analysis/'
+    load_dir = '/home/mat/data/ampc24/analysis/arm/cos_90_3'
     desc = 'Plot linearization vs affinization comparison'
     args = getParsedArgs_plot(load_dir, desc)
     plot(args.dir, args.headless)
@@ -66,7 +67,7 @@ def plot(load_dir: str, headless: bool=False):
     else:
         raise ValueError(f'Unknown system: {system}')
 
-    ######## C Analysis ########
+    ######## START: C Analysis ########
     pw = app.createPlotWindow('C Analysis')
     num_c = len(aff_uk_costs[0])
     c_list = np.linspace(0, 1, num_c)
@@ -136,8 +137,6 @@ def plot(load_dir: str, headless: bool=False):
         pw.plotInputLine(time, lin_inputs[k,i], '-.', label=f'lin: {c = :.1f}')
     pw.plotStateLine(time, xr_hist, 'r--', label='ref')
 
-    # app.addWindow(pw)
-
     pw2 = app.createPlotWindow('Best Base Points from C Analysis')
     pw2.plotStateLine(time, aff_uk_states[k,aff_uk_idx], label=f'aff (uk): c = {c_list[aff_uk_idx]:.1f}')
     pw2.plotStateLine(time, aff_ueq_states[k,aff_ueq_idx], label=f'aff (ueq): c = {c_list[aff_ueq_idx]:.1f}')
@@ -150,8 +149,6 @@ def plot(load_dir: str, headless: bool=False):
     pw2.plotInputLine(time, lin_inputs[k,lin_idx], '-.', label=f'lin: c = {c_list[lin_idx]:.1f}')
 
     pw2.plotStateLine(time, xr_hist, 'r--', label='ref')
-
-    # app.addWindow(pw2)
     ######## END: C Analysis ########
 
     ######## START: K Analysis ########
@@ -173,41 +170,20 @@ def plot(load_dir: str, headless: bool=False):
         lin_min_c = c_list[lin_idx]
 
         data = []
-        min_idx = np.argmin(aff_uk_min_costs)
-        min_cost = aff_uk_min_costs[min_idx]
-        min_cost_nominal = aff_uk_min_costs[0]
-        improve = (1 - min_cost / min_cost_nominal) * 100
-        uk_k = k_list[min_idx]
-        uk_c = aff_uk_min_c[min_idx]
-        uk_c_idx = aff_uk_idx[uk_k]
-        data.append(['aff (uk)', min_cost, uk_k, uk_c, improve])
 
-        min_idx = np.argmin(aff_ueq_min_costs)
-        min_cost = aff_ueq_min_costs[min_idx]
-        min_cost_nominal = aff_ueq_min_costs[0]
-        improve = (1 - min_cost / min_cost_nominal) * 100
-        ueq_k = k_list[min_idx]
-        ueq_c = aff_ueq_min_c[min_idx]
-        ueq_c_idx = aff_ueq_idx[ueq_k]
-        data.append(['aff (ueq)', min_cost, ueq_k, ueq_c, improve])
+        def getDataRow(costs, method):
+            min_idx = np.argmin(costs)
+            min_cost = costs[min_idx]
+            min_cost_nominal = costs[0]
+            improve = (1 - min_cost / min_cost_nominal) * 100
+            k = k_list[min_idx]
+            c = costs[min_idx]
+            return [method, min_cost, k, c, improve]
 
-        min_idx = np.argmin(aff_xeq_min_costs)
-        min_cost = aff_xeq_min_costs[min_idx]
-        min_cost_nominal = aff_xeq_min_costs[0]
-        improve = (1 - min_cost / min_cost_nominal) * 100
-        xeq_k = k_list[min_idx]
-        xeq_c = aff_xeq_min_c[min_idx]
-        xeq_c_idx = aff_xeq_idx[xeq_k]
-        data.append(['aff (xeq)', min_cost, xeq_k, xeq_c, improve])
-
-        min_idx = np.argmin(lin_min_costs)
-        min_cost = lin_min_costs[min_idx]
-        min_cost_nominal = lin_min_costs[0]
-        improve = (1 - min_cost / min_cost_nominal) * 100
-        lin_k = k_list[min_idx]
-        lin_c = lin_min_c[min_idx]
-        lin_c_idx = lin_idx[lin_k]
-        data.append(['lin', min_cost, lin_k, lin_c, improve])
+        data.append(getDataRow(aff_uk_min_costs, 'aff (uk)'))
+        data.append(getDataRow(aff_ueq_min_costs, 'aff (ueq)'))
+        data.append(getDataRow(aff_xeq_min_costs, 'aff (xeq)'))
+        data.append(getDataRow(lin_min_costs, 'lin'))
 
         formatted_data = [[row[0], f'{row[1]:.6f}', f'{row[2]:.1f}', f'{row[3]:.1f}', f'{row[4]:.2f}'] for row in data]
         headers = ['Method', 'Min Cost', 'k @ min', 'c @ min', '% Improvement']
@@ -215,49 +191,10 @@ def plot(load_dir: str, headless: bool=False):
         format = 'fancy_grid'
         table = tabulate(formatted_data, headers, tablefmt=format, disable_numparse=[1])
         print('K Analysis')
-        print(table)
+        print(table, end='\n\n')
         # table = tabulate(data, headers, tablefmt=format, disable_numparse=[1])
         with open(load_dir + 'c_analysis_results.txt', 'w') as f:
             print(table, file=f)
-
-        # aff_mc = np.array([row[1] for row in data[:-1]])
-        aff_mc = np.array([row[1] for row in data])
-        aff_k0 = np.array([aff_uk_min_costs[0], aff_ueq_min_costs[0],
-                           aff_xeq_min_costs[0], lin_min_costs[0]])
-
-        idx = np.argmin(aff_mc)
-        aff_improve = (1 - aff_mc[idx] / min_cost) * 100
-
-        min_cost = np.min(aff_mc)
-        best_lin_reduction = (1 - min_cost / aff_mc[-1]) * 100
-        nom_aff_reduction = (1 - min_cost / aff_uk_costs[0,0]) * 100
-        nom_lin_reduction = (1 - min_cost / lin_costs[0,0]) * 100
-        print(f'best lin vs best aff: {best_lin_reduction:.2f}% reduction')
-        print(f'nom aff vs best aff: {nom_aff_reduction:.2f}% reduction')
-        print(f'nom lin vs best aff: {nom_lin_reduction:.2f}% reduction')
-
-        if idx == 0:
-            best = 'uk'
-            k = uk_k
-            c_idx = aff_uk_idx[uk_k]
-            best_aff_states = aff_uk_states[k,c_idx]
-        elif idx == 1:
-            best = 'ueq'
-            k = ueq_k
-            c_idx = aff_ueq_idx[ueq_k]
-            best_aff_states = aff_ueq_states[k,c_idx]
-        elif idx == 2:
-            best = 'xeq'
-            k = xeq_k
-            c_idx = aff_xeq_idx[xeq_k]
-            best_aff_states = aff_xeq_states[k,c_idx]
-        else:
-            best = 'lin'
-            k = lin_k
-            c_idx = lin_idx[lin_k]
-            best_aff_states = lin_states[k,c_idx]
-        # print(f'Improvement from affinization: aff ({best}) by {aff_improve:.2f}%')
-        print()
 
         pw3 = app.createPlotWindow('K Analysis')
         pw3.plotMinCosts(k_list, aff_uk_min_costs, aff_uk_min_c, label='aff (uk)')
@@ -268,32 +205,65 @@ def plot(load_dir: str, headless: bool=False):
         pw3.plotCvK(c_list, k_list, aff_ueq_costs)
         pw3.plotCvK(c_list, k_list, aff_xeq_costs)
         pw3.plotCvK(c_list, k_list, lin_costs)
-
     ######## END: K Analysis ########
 
     ######## START: Aff vs Lin Analysis ########
-        pw4 = app.createPlotWindow('Summary Time Tracking')
-        # nom_lin = lin_states[0,0]
-        # nom_aff = aff_uk_states[0,0]
-        # best_lin = lin_states[lin_k,lin_c]
-        # best_aff = aff_uk_states[uk_k,uk_c]
-        # pw4.plotStateLine(time, nom_lin, '-.', label='nominal lin')
+    pw4 = app.createPlotWindow('Time Tracking: Aff vs Lin')
 
-        base_points = [r'$(x_0,u_{-1})$', r'$(x_0,u_e)$', r'$(x_e,u_{-1})$', r'$(x_e,u_e)$']
-        lbl = f'best aff: k={k+1}, c={c_list[c_idx]:.1f}, p={base_points[idx]}'
-        pw4.plotStateLine(time, best_aff_states, label=lbl)
-        pw4.plotStateLine(time, aff_uk_states[0,0], label=f'nom aff')
-        lbl = f'best lin: k = {lin_k+1}, c = {lin_c:.1f}'
-        pw4.plotStateLine(time, lin_states[lin_k,lin_c_idx], label=lbl)
-        pw4.plotStateLine(time, lin_states[0,0], label=f'nom lin')
-        pw4.plotStateLine(time, xr_hist, 'r--', label='ref')
+    def getIndices(costs):
+        idx = np.argmin(costs)
+        k_idx = idx // num_c
+        c_idx = idx % num_c
+        return k_idx, c_idx
 
+    uk_k_idx, uk_c_idx = getIndices(aff_uk_costs)
+    ueq_k_idx, ueq_c_idx = getIndices(aff_ueq_costs)
+    xeq_k_idx, xeq_c_idx = getIndices(aff_xeq_costs)
+    lin_k_idx, lin_c_idx = getIndices(lin_costs)
+
+    best_costs = [aff_uk_costs[uk_k_idx,uk_c_idx], aff_ueq_costs[ueq_k_idx,ueq_c_idx],
+                  aff_xeq_costs[xeq_k_idx,xeq_c_idx], lin_costs[lin_k_idx,lin_c_idx]]
+    k_idxs = [uk_k_idx, ueq_k_idx, xeq_k_idx, lin_k_idx]
+    c_idxs = [uk_c_idx, ueq_c_idx, xeq_c_idx, lin_c_idx]
+    idx = np.argmin(best_costs)
+    if idx == 0:
+        best_aff_states = aff_uk_states[uk_k_idx,uk_c_idx]
+    elif idx == 1:
+        best_aff_states = aff_ueq_states[ueq_k_idx,ueq_c_idx]
+    elif idx == 2:
+        best_aff_states = aff_xeq_states[xeq_k_idx,xeq_c_idx]
+    else:
+        best_aff_states = lin_states[lin_k_idx,lin_c_idx]
+
+    min_cost = np.min(best_costs)
+    best_lin_reduction = (1 - min_cost / aff_mc[-1]) * 100
+    nom_aff_reduction = (1 - min_cost / aff_uk_costs[0,0]) * 100
+    nom_lin_reduction = (1 - min_cost / lin_costs[0,0]) * 100
+    print(f'best lin vs best aff: {best_lin_reduction:.2f}% reduction')
+    print(f'nom aff vs best aff: {nom_aff_reduction:.2f}% reduction')
+    print(f'nom lin vs best aff: {nom_lin_reduction:.2f}% reduction')
+
+    base_points = [r'$(x_0,u_{-1})$', r'$(x_0,u_e)$', r'$(x_e,u_{-1})$', r'$(x_e,u_e)$']
+    k = k_idxs[idx]
+    c_idx = c_idxs[idx]
+    lbl = f'best aff: k={k+1}, c={c_list[c_idx]:.1f}, p={base_points[idx]}'
+    print(lbl)
+    # pw4.plotStateLine(time, best_aff_states, 'm', label=lbl[:8])
+    # pw4.plotStateLine(time, aff_uk_states[0,0], 'b--', label=f'nom aff')
+    pw4.plotStateLine(time, best_aff_states, label=lbl[:8])
+    pw4.plotStateLine(time, aff_uk_states[0,0], '-.', label=f'nom aff')
+    lin_c = c_list[lin_c_idx]
+    lbl = f'best lin: k = {lin_k_idx+1}, c = {lin_c:.1f}'
+    print(lbl)
+    # pw4.plotStateLine(time, lin_states[lin_k,lin_c_idx], 'g', label=lbl[:8])
+    # pw4.plotStateLine(time, lin_states[0,0], 'r--', label=f'nom lin')
+    pw4.plotStateLine(time, lin_states[lin_k_idx,lin_c_idx], label=lbl[:8])
+    pw4.plotStateLine(time, lin_states[0,0], '-.', label=f'nom lin')
+    pw4.plotStateLine(time, xr_hist, '--', linewidth=2, label='ref')
     ######## END: Aff vs Lin Analysis ########
 
 
     if headless:
-        # app.plot_app.applyTightLayout()
-        # app.plot_app.pause(0.5)
         app.pause(0.5)
     else:
         app.show()
