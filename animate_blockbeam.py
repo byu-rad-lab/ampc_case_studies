@@ -10,16 +10,18 @@ def animate(load_dir: str):
     figsize = 1000,800
 
     ## Load Data
-    time = np.loadtxt(load_dir + 'time.txt')
-    aff_costs = np.loadtxt(load_dir + 'aff_costs.txt')
-    lin_costs = np.loadtxt(load_dir + 'lin_costs.txt')
+    time = np.load(load_dir + 'time.npy')
+    aff_costs = np.load(load_dir + 'aff_uk_costs.npy')
+    lin_costs = np.load(load_dir + 'lin_costs.npy')
     num_c = len(aff_costs)
-    aff_states = np.loadtxt(load_dir + 'aff_states.txt').reshape(num_c,-1,4)
-    lin_states = np.loadtxt(load_dir + 'lin_states.txt').reshape(num_c,-1,4)
-    xr_hist = np.loadtxt(load_dir + 'ref_states.txt')
+    aff_states = np.load(load_dir + 'aff_uk_states.npy')
+    lin_states = np.load(load_dir + 'lin_states.npy')
+    xr_hist = np.load(load_dir + 'ref_states.npy')
 
     min_idx = np.argmin(aff_costs)
-    x_hist = aff_states[min_idx]
+    k_idx = min_idx // aff_costs.shape[1]
+    c_idx = min_idx % aff_costs.shape[1]
+    x_hist = aff_states[k_idx, c_idx]
     animation = Animation(x_hist[0])
     pw = TabbedPlotWindow('Block Beam', figsize)
     pw.addTab('animation', animation.fig)

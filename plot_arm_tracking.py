@@ -13,14 +13,15 @@ def plot(load_dir: str):
     img_types = ['svg', 'pdf']
 
     ## Load Data
-    k_list = np.loadtxt(load_dir + 'k_list.txt')
-    c_list = np.loadtxt(load_dir + 'c_list.txt')
+    k_list = np.load(load_dir + 'k_list.npy')
+    # c_list = np.load(load_dir + 'c_list.npy')
+    c_list = np.linspace(0, 1, 11)
 
-    time = np.loadtxt(load_dir + 'time.txt')
-    costs = np.loadtxt(load_dir + 'costs.txt')
-    xtraj_hist = np.loadtxt(load_dir + 'states.txt').reshape(len(c_list),-1,2)
-    xr_hist = np.loadtxt(load_dir + 'ref_states.txt')
-    utraj_hist = np.loadtxt(load_dir + 'inputs.txt').reshape(len(c_list),-1)
+    time = np.load(load_dir + 'time.npy')
+    costs = np.load(load_dir + 'costs.npy')
+    xtraj_hist = np.load(load_dir + 'states.npy').reshape(len(c_list),-1,2)
+    xr_hist = np.load(load_dir + 'ref_states.npy')
+    utraj_hist = np.load(load_dir + 'inputs.npy').reshape(len(c_list),-1)
 
     plotter = Plotter(time, legend, deg, fontsize, figsize)
 
