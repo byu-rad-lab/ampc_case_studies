@@ -4,17 +4,17 @@ from .. import model
 class BlockBeam(model.ModelBase):
     def __init__(self, block_mass: float, beam_mass: float,
                  length: float, gravity: float=9.8):
-        self.block_mass = block_mass
-        self.beam_mass = beam_mass
+        self.m1 = block_mass
+        self.m2 = beam_mass
         self.len = length
         self.g = gravity
 
     def _f(self, x: np.ndarray, u: np.ndarray) -> np.ndarray:
         force = u[0]*self.len*np.cos(x[1])
-        friction = 2*self.block_mass*x[0]*x[2]*x[3]
-        g_block = self.block_mass*self.g*x[0]*np.cos(x[1])
-        g_beam = 0.5*self.beam_mass*self.g*self.len*np.cos(x[1])
-        inertia = self.beam_mass*self.len**2/3 + self.block_mass*x[0]**2
+        friction = 2*self.m1*x[0]*x[2]*x[3]
+        g_block = self.m1*self.g*x[0]*np.cos(x[1])
+        g_beam = 0.5*self.m2*self.g*self.len*np.cos(x[1])
+        inertia = self.m2*self.len**2/3 + self.m1*x[0]**2
 
         xdot = np.empty_like(x)
         xdot[0] = x[2]
@@ -34,34 +34,23 @@ class BlockBeam(model.ModelBase):
         '''
         Cx1 = np.cos(x_p[1])
         Sx1 = np.sin(x_p[1])
-        inertia = self.beam_mass*self.len**2/3 + self.block_mass*x_p[0]**2
+        inertia = self.m2*self.len**2/3 + self.m1*x_p[0]**2
 
-        num2 = self.g*self.block_mass*Cx1 + 2*self.block_mass*x_p[2]*x_p[3]
-        num1 = -0.5*self.beam_mass*self.g*self.len*Cx1
-        num1 += -self.block_mass*self.g*x_p[0]*Cx1 + self.len*u_p[0]*Cx1
-        num1 -= 2*self.block_mass*x_p[0]*x_p[2]*x_p[3]
-        num1 *= 2*self.block_mass*x_p[0]
-        dx3_x0 = -num1 / inertia**2 - num2 / inertia
+        n1 = -2*self.m1*x_p[0]
+        n2 = u_p[0]*self.len - self.m1*self.g*x_p[0] - 0.5*self.m2*self.g*self.len
+        n3 = self.m1*self.g*Cx1 + 2*self.m1*x_p[2]*x_p[3]
+        d = inertia
 
-        num1 = 0.5*self.beam_mass*self.g*self.len*Sx1
-        num1 += self.block_mass*self.g*x_p[0]*Sx1
-        num1 -= self.len*u_p[0]*Sx1
-        dx3_x1 = num1 / inertia
-
-        num1 = -2*self.block_mass*x_p[0]*x_p[3]
-        dx3_x2 = num1 / inertia
-
-        num1 = -2*self.block_mass*x_p[0]*x_p[2]
-        dx3_x3 = num1 / inertia
+        dx3_x0 = n1*(n2*Cx1 + n1*x_p[2]*x_p[3])/d**2 - n3/d
 
         A = np.array([[0, 0, 1, 0],
                       [0, 0, 0, 1],
                       [x_p[3]**2, -self.g*Cx1, 0, 2*x_p[0]*x_p[3]],
-                      [dx3_x0, dx3_x1, dx3_x2, dx3_x3]])
+                      [dx3_x0, -n2*Sx1/d, n1*x_p[3]/d, n1*x_p[2]/d]])
         B = np.array([[0],
                       [0],
                       [0],
-                      [self.len*Cx1 / inertia]])
+                      [self.len*Cx1 / d]])
         w = self._f(x_p, u_p) - A @ x_p - B @ u_p
         return model.AffineModel(A, B, w)
 
@@ -70,20 +59,20 @@ class BlockBeam(model.ModelBase):
         Linearize continuous-time dynamics around equilibrium point.
 
         Args:
-        x_eq: equilibrium state (n,)
-        u_eq: equilibrium input (m,)
+          x_eq: equilibrium state (n,)
+          u_eq: equilibrium input (m,)
 
         Returns:
-        A: linearized state matrix (n, n)
-        B: linearized input matrix (n, m)
+          A: linearized state matrix (n, n)
+          B: linearized input matrix (n, m)
         '''
         xdot = self._f(x_eq, u_eq)
         assert xdot @ xdot < 1e-15, 'Not an equilibrium point'
 
         # sys = self.affinize(x_eq, u_eq)
 
-        inertia = self.beam_mass*self.len**2/3 + self.block_mass*x_eq[0]**2
-        dx3_x0 = -self.block_mass*self.g/inertia
+        inertia = self.m2*self.len**2/3 + self.m1*x_eq[0]**2
+        dx3_x0 = -self.m1*self.g/inertia
 
         A = np.zeros((4,4))
         A[0,2] = 1
@@ -102,12 +91,12 @@ class BlockBeam(model.ModelBase):
         Calculate the torque required to hold the arm at a given angle.
 
         Args:
-        angle: angle in radians
+          angle: angle in radians
 
         Returns:
-        torque: torque required to hold the arm at the given angle
+          torque: torque required to hold the arm at the given angle
         '''
-        return (0.5*self.beam_mass + self.block_mass*z/self.len) * self.g
+        return (0.5*self.m2 + self.m1*z/self.len) * self.g
 
 
 def main():
