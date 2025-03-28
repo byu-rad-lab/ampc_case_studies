@@ -5,7 +5,7 @@ import os
 def fixDirString(dir_s: str):
     if not dir_s[-1] == '/':
         dir_s += '/'
-    return dir_s
+    return os.path.expanduser(dir_s)
 
 
 def fixSystemString(s: str):
@@ -15,6 +15,8 @@ def fixSystemString(s: str):
         return 'blockbeam'
     elif s[0] in ['c', 'p']:
         return 'pendulum'
+    # elif s[0] in ['c']:
+    #     return 'cart'
     elif s[0] == 'm':
         return 'multirotor'
     else:
@@ -55,15 +57,15 @@ def getParsedArgs_run(default_dir: str, description: str):
             ans = input('Create it? [Y/n]: ')
             if len(ans) == 0: ans = 'y'
             if not ans.startswith(('y','Y')):
-                msg = f'Create {args.dir} first or use -M flag to create it.'
+                msg = f'Create {args.dir} first or use -m flag to create it.'
                 raise NotADirectoryError(msg)
         os.makedirs(args.dir)
     else:
         if not args.overwrite_dir:
-            ans = input(f'{args.dir} contains data. Do you wish to overwrite it? [Y/n]: ')
-            if len(ans) == 0: ans = 'y'
+            ans = input(f'{args.dir} contains data. Do you wish to overwrite it? [y/N]: ')
+            if len(ans) == 0: ans = 'n'
             if not ans.startswith(('y','Y')):
-                msg = f'Move contents of {args.dir}, choose a different DIR, or use -O flag'
+                msg = f'Move contents of {args.dir}, choose a different DIR, or use -o flag'
                 raise FileExistsError(msg)
     print(f'Saving data to: {args.dir}')
     return args
