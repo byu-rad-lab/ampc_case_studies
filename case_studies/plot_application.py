@@ -88,8 +88,10 @@ class TabbedWindow:
 
 class PlotApplication:
     def __init__(self, fontsize: int=10):
-        matplotlib.rcParams['font.size'] = fontsize
-        matplotlib.rcParams['legend.fontsize'] = fontsize - 1
+        matplotlib.rcParams['font.size'] = fontsize - 2
+        matplotlib.rcParams['legend.fontsize'] = fontsize - 2
+        matplotlib.rcParams['axes.titlesize'] = fontsize
+        matplotlib.rcParams['axes.labelsize'] = fontsize - 2
         self.app = QApplication(sys.argv)
         self.windows: list[TabbedWindow] = []
 
