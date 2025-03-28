@@ -9,7 +9,7 @@ class PlotWindow:
                  fontsize: int=12, fig_size: tuple[int,int]=(800,600)):
         self.legend = legend
         self.deg = deg
-        self.legend_fontsize = fontsize - 4
+        self.legend_fontsize = fontsize - 2
         self.window = TabbedWindow(name, fig_size)
         self.tabs = []
 
@@ -130,7 +130,7 @@ class PlotWindow:
         if 'States' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('States'))
             if self.legend and 6 > len(self.pos_ax.get_lines()) > 1:
-                self.pos_ax.legend(fontsize=fs)
+                self.pos_ax.legend(fontsize=fs, ncol=3)
             self.x_fig.tight_layout()
         if 'Inputs' in self.tabs:
             self.window.tabs.setCurrentIndex(self.tabs.index('Inputs'))
@@ -175,15 +175,12 @@ class PlotWindow:
         if 'c vs k' in self.tabs:
             self.cvk_fig.savefig(f'{path}c_vs_k.{image_type}')
 
-
 class Plotter:
 
-    def __init__(self, legend: bool=True, deg: bool=True,
-                 fontsize: int=12, fig_size: tuple[int,int]=(800,600)):
+    def __init__(self, legend: bool=True, deg: bool=True, fontsize: int=12):
         self.legend = legend
         self.deg = deg
         self.fontsize = fontsize
-        self.fig_size = fig_size
         self.plot_app = PlotApplication(fontsize)
         self.windows: list[PlotWindow] = []
 
@@ -192,11 +189,11 @@ class Plotter:
         self.plot_app.addWindow(window.window)
         window.show()
 
-    def createPlotWindow(self, name: str='Robot Arm Simulation Data') -> PlotWindow:
-        window = PlotWindow(name, self.legend, self.deg, self.fontsize, self.fig_size)
+    def createPlotWindow(self, name: str='Robot Arm Sim Data', fontsize: int=12,
+                         fig_size: tuple[int,int]=(800,600)) -> PlotWindow:
+        window = PlotWindow(name, self.legend, self.deg, fontsize, fig_size)
         self.windows.append(window)
         self.plot_app.addWindow(window.window)
-        # window.show()
         return window
 
     def show(self):

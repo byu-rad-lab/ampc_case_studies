@@ -219,12 +219,10 @@ class PlotWindow:
 
 class Plotter:
 
-    def __init__(self, legend: bool=True, deg: bool=True,
-                 fontsize: int=12, fig_size: tuple[int,int]=(800,600)):
+    def __init__(self, legend: bool=True, deg: bool=True, fontsize: int=12):
         self.legend = legend
         self.deg = deg
         self.fontsize = fontsize
-        self.fig_size = fig_size
         self.plot_app = PlotApplication(fontsize)
         self.windows: list[PlotWindow] = []
 
@@ -233,11 +231,11 @@ class Plotter:
         self.plot_app.addWindow(window.window)
         window.show()
 
-    def createPlotWindow(self, name: str='Robot Arm Simulation Data') -> PlotWindow:
-        window = PlotWindow(name, self.legend, self.deg, self.fontsize, self.fig_size)
+    def createPlotWindow(self, name: str='Multirotor Sim Data', fontsize: int=12,
+                         fig_size: tuple[int,int]=(800,600)) -> PlotWindow:
+        window = PlotWindow(name, self.legend, self.deg, fontsize, fig_size)
         self.windows.append(window)
         self.plot_app.addWindow(window.window)
-        # window.show()
         return window
 
     def show(self):

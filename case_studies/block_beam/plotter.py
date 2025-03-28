@@ -144,7 +144,7 @@ class PlotWindow:
             self.cost_fig.tight_layout()
         if 'Position' in self.tabs:
             if self.legend and 6 > len(self.pos_ax[0].get_lines()) > 1:
-                self.pos_ax[0].legend(fontsize=leg_fontsize)
+                self.pos_ax[0].legend(fontsize=leg_fontsize, ncol=3)
                 self.vel_ax[0].legend(fontsize=leg_fontsize)
             self.window.tabs.setCurrentIndex(self.tabs.index('Position'))
             self.pos_fig.tight_layout()
@@ -197,12 +197,10 @@ class PlotWindow:
 
 class Plotter:
 
-    def __init__(self, legend: bool=True, deg: bool=True,
-                 fontsize: int=12, fig_size: tuple[int,int]=(800,600)):
+    def __init__(self, legend: bool=True, deg: bool=True, fontsize: int=12):
         self.legend = legend
         self.deg = deg
         self.fontsize = fontsize
-        self.fig_size = fig_size
         self.plot_app = PlotApplication(fontsize)
         self.windows: list[PlotWindow] = []
 
@@ -211,11 +209,11 @@ class Plotter:
         self.plot_app.addWindow(window.window)
         window.show()
 
-    def createPlotWindow(self, name: str='Robot Arm Simulation Data') -> PlotWindow:
-        window = PlotWindow(name, self.legend, self.deg, self.fontsize, self.fig_size)
+    def createPlotWindow(self, name: str='Block-Beam Sim Data', fontsize: int=12,
+                         fig_size: tuple[int,int]=(800,600)) -> PlotWindow:
+        window = PlotWindow(name, self.legend, self.deg, fontsize, fig_size)
         self.windows.append(window)
         self.plot_app.addWindow(window.window)
-        # window.show()
         return window
 
     def show(self):
