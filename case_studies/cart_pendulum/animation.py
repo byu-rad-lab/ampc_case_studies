@@ -20,22 +20,18 @@ class CartPendulumAnimator(SystemAnimator):
         self.buffer = self.length * 3
 
         span = 100000
-        ax.plot([-span, span], [0, 0], 'k')    # Draw a ground line
+        groundline, = ax.plot([-span, span], [0, 0], 'k')
 
         z0 = self.z_hist[0]
         theta0 = self.theta_hist[0]
         ax.grid(True)
-        ax.axis([z0-self.buffer, z0+self.buffer, -self.length, self.buffer]) # Change the x,y axis limits
-        ax.set_xlim(z0-self.buffer, z0+self.buffer) # Change the x,y axis limits
-        # ax.set_ylim(-self.buffer, self.buffer) # Change the x,y axis limits
-        # ax.axis('equal')
-        self._drawCart(z0, color)
-        self._drawPendulum(z0, theta0, color)
-
+        ax.set_xlim(z0-self.buffer, z0+self.buffer)
         ax_w,ax_h = ax.bbox.size
-        # ratio = dim[1] / dim[0]
         ratio = ax_h / ax_w
         ax.set_ylim(np.array([-self.buffer, self.buffer]) * ratio)
+
+        self._drawCart(z0, color)
+        self._drawPendulum(z0, theta0, color)
 
     def update(self, i):
         z = self.z_hist[i]
@@ -45,8 +41,6 @@ class CartPendulumAnimator(SystemAnimator):
         bottom = self.gap + self.cart_height
         pts = np.array([[z, z + self.length*s0, z - self.cart_width/2],
                         [bottom, bottom + self.length*c0, self.gap]])
-        # bottom_left_corner = (x, y)
-        # self.block.set(xy=bottom_left_corner, angle=np.rad2deg(theta))
         self.cart.set(xy=pts[:,-1])
         self.pendulum.set_xdata(pts[0,:2])
         self.pendulum.set_ydata(pts[1,:2])
@@ -57,7 +51,7 @@ class CartPendulumAnimator(SystemAnimator):
     def _drawCart(self, z0, color):
         x = z0 - self.cart_width / 2
         y = self.gap
-        bottom_left_corner = (x, y)
+        bottom_left_corner = x, y
 
         self.cart = mpatches.Rectangle(
             xy=bottom_left_corner, width=self.cart_width, height=self.cart_height,
@@ -87,19 +81,3 @@ class CartPendulumAnimator(SystemAnimator):
         high += shift
         low += shift
         ax.set_xlim(low, high)
-
-
-if __name__ == '__main__':
-    from ..tabbed_plot_window import TabbedPlotWindow
-    length = 0.5
-    x = np.array([0.1, np.radians(0), 0, 0])
-    animation = Animation(x, length)
-    pw = TabbedPlotWindow(size=[800,800])
-    pw.addTab('animation', animation.fig)
-    for theta in np.arange(0, np.radians(45), 0.01):
-        x[0] += 0.01
-        x[1] = theta
-        animation.update(x)
-        pw.pause(0.1)
-
-    pw.show()

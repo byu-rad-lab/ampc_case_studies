@@ -68,7 +68,6 @@ class CombinedAnimator:
         self.xr_hist = xr_hist
         xr_color = 'tab:red'
 
-        # sys_ax.set_title(f'Animation: {label}')
         self.animator = Animator(sys_ax, x_hist, color=color)
 
         self.x_data: list[DataAnimator] = []
@@ -109,36 +108,21 @@ class StackedAnimation:
 
         x_top = x_hists[0]
         x_bot = x_hists[1]
-        # assert len(x_top) == len(x_bot) == len(xr_hist) == len(x_labels)
         assert len(data_idxs) == len(x_labels)
-
-        # fig = plt.figure(figsize=(16, 9), layout='tight')
-        # rows = 2*self.num + 1
-        # gs = fig.add_gridspec(rows, 3, width_ratios=[1, 1.5, 0.125],
-        #                       height_ratios=[1]*self.num + [0.05] + [1]*self.num)
 
         hline = mlines.Line2D([0,1], [0.5]*2, transform=fig.transFigure, color='black')
         fig.lines.extend([hline])
 
-        ## top
-        # ani_ax = fig.add_subplot(gs[:self.num, 0])
-        # data_axes = [fig.add_subplot(gs[i, 1]) for i in range(self.num)]
         self.top_animation = CombinedAnimator(Animator, ani_axes[0], data_axes[0],
                                               t_hist, x_top, xr_hist, data_idxs, x_labels,
                                               colors[0], labels[0])
         fig.text(0.025, 0.75, labels[0], va='center', ha='center', rotation=90,
                  transform=fig.transFigure, fontsize=20)
-        # ani_ax.set_ylabel(labels[0], fontsize=20)
 
-        ## bottom
-        # ani_ax = fig.add_subplot(gs[-self.num:, 0])
-        # data_axes = [fig.add_subplot(gs[-i, 1]) for i in range(self.num, 0, -1)]
         self.bot_animation = CombinedAnimator(Animator, ani_axes[1], data_axes[1], t_hist, x_bot,
                                               xr_hist, data_idxs, x_labels, colors[1], labels[1])
         fig.text(0.025, 0.25, labels[1], va='center', ha='center', rotation=90,
                  transform=fig.transFigure, fontsize=20)
-
-        fig.subplots_adjust(left=0.2, right=0.95)#, wspace=0.25)
 
         self.fig = fig
 
@@ -161,11 +145,13 @@ class StackedAnimation:
         ani.save(filename, writer='ffmpeg', progress_callback=update_progress)
 
 
-    def animate(self):
-        # ani = animation.FuncAnimation(self.fig, self.update, frames=self.steps,
-        #                               interval=.00001, blit=False, repeat=False)
-        # plt.show(block=True)
-        for i in range(self.steps):
-            self.update(i)
-            plt.pause(0.0001)
+    def animate(self, use_mpl_animation=True):
+        dt = 0.0001
+        if use_mpl_animation:
+            ani = animation.FuncAnimation(self.fig, self.update, frames=self.steps,
+                                          interval=dt, blit=False, repeat=False)
+        else:
+            for i in range(self.steps):
+                self.update(i)
+                plt.pause(dt)
         plt.show(block=True)

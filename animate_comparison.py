@@ -192,13 +192,7 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
         ani.animate()
 
 def main():
-    default_dir = '~/data/ampc24/analysis/arm/step_60'
-    default_dir = '~/data/ampc24/analysis/arm/cos_90_3'
-    default_dir = '~/data/ampc24/analysis/beam/step_0.4'
-    default_dir = '~/data/ampc24/analysis/pendulum/cos_15_1'
-    default_dir = '~/data/ampc24/analysis/pendulumz/rampz_5'
-    # default_dir = '~/data/ampc24/analysis/multirotor/ramp1_10'
-    # default_dir = '/tmp/ampc24/analysis/'
+    default_dir = '/tmp/ampc24/analysis/'
     desc = '''
         AniMate stacked AMPC simulations. The top animation is the best affinization and the bottom defaults to be nominal linearization, but a different modeling method can be manually selected.
         '''
