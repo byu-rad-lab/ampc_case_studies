@@ -7,15 +7,26 @@ import matplotlib.pyplot as plt
 from case_studies.animation import StackedAnimation
 from case_studies.single_link_arm.animation import ArmAnimator
 from case_studies.block_beam.animation import BlockBeamAnimator
+from case_studies.cart_pendulum.animation import CartPendulumAnimator
+from case_studies.multirotor.animation import MultirotorAnimator
 from parsing import getParsedArgs_animate
 import constants as C
 
 
 def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
             c_idx: int, k_idx: int):
-    figsize = 800,800
+    """
+    Animate the results of AMPC simulations.
 
-    ## Load Data
+    Args:
+        load_dir (str): Directory to load data from.
+        save_path (str): Full path where animation will be saved.
+        method (str|None): Method to use for animation.
+        anchor_point (str): Anchor point for animation.
+        c_idx (int): Index of c value [0-10] or -1 for best.
+        k_idx (int): Index of k value [0-(T-1)] or -1 for best.
+    """
+
     load_dir = os.path.expanduser(load_dir)
     with open(os.path.join(load_dir, 'system.txt'), 'r') as f:
         system = f.read()
@@ -67,6 +78,7 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
                 label_bot = "Best Affinization"
             case 'best_lin':
                 states = np.load(os.path.join(load_dir, 'lin_states.npy'))
+                anchor_point = C.ANCHOR_POINTS[-1]
                 k_idx, c_idx = best_idx
                 label_bot = "Best Linearization"
             case 'nom_aff':
@@ -77,6 +89,7 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
                 label_bot = "Nominal Affinization"
             case 'nom_lin':
                 states = np.load(os.path.join(load_dir, 'lin_states.npy'))
+                anchor_point = C.ANCHOR_POINTS[-1]
                 k_idx = 0
                 c_idx = 0
                 label_bot = "Nominal Linearization"
@@ -118,93 +131,78 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
     states_bot = states_bot.T
     xr_hist = xr_hist.T
 
-    # fig = plt.figure(figsize=(16,9), layout='tight')
     fig = plt.figure(figsize=(19.2,10.8), layout='tight')
+    extra_fig_opts = {} # used to specify 3d axes for multirotor
+
+    # default plot space settings
+    wr = np.array([0.125, 1, 0.1, 1.5, 0.1])
+    hr = np.array([1, 1, 0.05, 1, 1])
+    ani_col = 1
+    data_col = 3
+
+    # default indices of x to plot next to animation
+    data_idx = [0, 1]
 
     match system:
         case 'arm':
             Animator = ArmAnimator
-            data_idx = [0, 1]
             x_labels = [r'$\theta$ (deg)', r'$\dot{\theta}$ (rad/s)']
             wr = np.array([1, 1.5, 0.125])
-            hr = np.array([1, 1, 0.05, 1, 1])
             ani_col = 0
             data_col = 1
-            # gs = fig.add_gridspec(5, 3, width_ratios=[1, 1.5, 0.125],
-            #                       height_ratios=[1, 1, 0.05, 1, 1])
-            # ani_axes = [fig.add_subplot(gs[:2,0]), fig.add_subplot(gs[-2:,0])]
-            # data_axes = [[fig.add_subplot(gs[i,1]) for i in range(2)],
-            #              [fig.add_subplot(gs[-i,1]) for i in range(2,0,-1)]]
         case 'blockbeam':
             Animator = BlockBeamAnimator
-            data_idx = [0, 1]
-            x_labels = ['z (m)', r'$\theta$ (deg)']
-            wr = np.array([0.125, 1, 0.1, 1.5, 0.1])
-            hr = np.array([1, 1, 0.05, 1, 1])
-            ani_col = 1
-            data_col = 3
-            # gs = fig.add_gridspec(5, 5, width_ratios=wr, height_ratios=hr)
-            # ani_axes = [fig.add_subplot(gs[:2,1]), fig.add_subplot(gs[-2:,1])]
-            # data_axes = [[fig.add_subplot(gs[i,3]) for i in range(2)],
-            #              [fig.add_subplot(gs[-i,3]) for i in range(2,0,-1)]]
-        case 'cart':
-            # Animator = CartAnimator
-            data_idx = [0, 1]
             x_labels = ['z (m)', r'$\theta$ (deg)']
         case 'pendulum':
-            # Animator = PendulumAnimator
+            Animator = CartPendulumAnimator
             Q = np.load(os.path.join(load_dir, 'Q.npy'))
-            if Q[0] == 0.0: # controlling cart
-                data_idx = [0, 1]
-                x_labels = ['z (m)', r'$\theta$ (deg)']
-            else: # controlling pendulum
+            if Q[0] == 0.0: # controlling pendulum
                 data_idx = [1, 3]
                 x_labels = [r'$\theta$ (deg)', r'$\dot{\theta}$ (rad/s)']
-            wr = np.array([0.125, 1, 0.1, 1.5, 0.1])
-            hr = np.array([1, 1, 0.05, 1, 1])
-            ani_col = 1
-            data_col = 3
+            else: # controlling cart
+                x_labels = ['z (m)', r'$\theta$ (deg)']
         case 'multirotor':
-            # Animator = MultirotorAnimator
+            Animator = MultirotorAnimator
             data_idx = [1, 2, 3]
-            x_labels = ['p_y (m)', 'p_y (m)', r'$\phi$ (deg)']
-            wr = np.array([0.125, 1, 0.1, 1.5, 0.1])
             hr = np.array([1, 1, 1, 0.05, 1, 1, 1])
-            ani_col = 1
-            data_col = 3
+            x_labels = ['$p_y$ (m)', '$p_z$ (m)', r'$\phi$ (deg)']
+            extra_fig_opts['projection'] = '3d'
         case _:
             raise ValueError(f"System {system} not recognized.")
 
     n = len(data_idx)
     gs = fig.add_gridspec(len(hr), len(wr), width_ratios=wr, height_ratios=hr)
-    ani_axes = [fig.add_subplot(gs[:n,ani_col]), fig.add_subplot(gs[-n:,ani_col])]
+    ani_axes = [fig.add_subplot(gs[:n,ani_col], **extra_fig_opts),
+                fig.add_subplot(gs[-n:,ani_col], **extra_fig_opts)]
     data_axes = [[fig.add_subplot(gs[i,data_col]) for i in range(n)],
                     [fig.add_subplot(gs[-i,data_col]) for i in range(n,0,-1)]]
 
-    x_hists = [states_top[data_idx], states_bot[data_idx]]
-    xr_hist = xr_hist[data_idx]
+    x_hists = [states_top, states_bot]
     colors = [C.COLORS[0], color_bot]
     labels = ['Best Affinization', label_bot]
 
-    ani = StackedAnimation(Animator, fig, ani_axes, data_axes, time, x_hists, x_labels, xr_hist, colors, labels)
+    ani = StackedAnimation(Animator, fig, ani_axes, data_axes, time, x_hists,
+                           data_idx, x_labels, xr_hist, colors, labels)
+
     if save_path is not None:
         save_path = os.path.expanduser(save_path)
         ani.save(save_path)
-        # print('',flush=True, end='')
         print(f'Saved animation to {save_path}')
     else:
         ani.animate()
 
 def main():
-    load_dir = '~/data/ampc24/analysis/arm/step_60'
-    load_dir = '~/data/ampc24/analysis/arm/cos_90_3'
-    # load_dir = '~/data/ampc24/analysis/beam/step_0.4'
-    default_dir = '/tmp/ampc24/analysis/'
+    default_dir = '~/data/ampc24/analysis/arm/step_60'
+    default_dir = '~/data/ampc24/analysis/arm/cos_90_3'
+    default_dir = '~/data/ampc24/analysis/beam/step_0.4'
+    default_dir = '~/data/ampc24/analysis/pendulum/cos_15_1'
+    default_dir = '~/data/ampc24/analysis/pendulumz/rampz_5'
+    # default_dir = '~/data/ampc24/analysis/multirotor/ramp1_10'
+    # default_dir = '/tmp/ampc24/analysis/'
     desc = '''
         AniMate stacked AMPC simulations. The top animation is the best affinization and the bottom defaults to be nominal linearization, but a different modeling method can be manually selected.
         '''
-    args = getParsedArgs_animate(load_dir, desc)
-    print(args)
+    args = getParsedArgs_animate(default_dir, desc)
     load_dir = args.dir
     method =  args.method
     save_path = args.save_path
@@ -214,7 +212,6 @@ def main():
         args.k = -1
     k_idx = args.k - 1 if args.k > 0 else -1
     animate(load_dir, save_path, method, approx_pt, c_idx, k_idx)
-
 
 if __name__ == '__main__':
     main()
