@@ -7,7 +7,7 @@ from parsing import getParsedArgs_plot
 
 
 def animate(load_dir: str):
-    figsize = 1000,800
+    figsize = 800,800
 
     ## Load Data
     time = np.load(load_dir + 'time.npy')
@@ -42,6 +42,7 @@ def animate(load_dir: str):
         k,c = lin_min_idx
 
     x_hist = states[k,c]
+    x_hist = states[0,0]
     animation = Animation(x_hist[0])
     pw = TabbedPlotWindow('Cart Pendulum', figsize)
     pw.addTab('animation', animation.fig)
@@ -59,7 +60,7 @@ def animate(load_dir: str):
 
 
 def main():
-    load_dir = '/tmp/ampc24/pendulum/analysis'
+    load_dir = '~/data/ampc24/analysis/pendulum/ramp_45'
     desc = 'Animate cart pendulum'
     args = getParsedArgs_plot(load_dir, desc)
     animate(args.dir)
