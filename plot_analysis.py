@@ -6,6 +6,7 @@ import case_studies.block_beam.plotter as beam_plotter
 import case_studies.cart_pendulum.plotter as pendulum_plotter
 import case_studies.multirotor.plotter as multirotor_plotter
 from parsing import getParsedArgs_plot
+import constants as C
 
 
 def main():
@@ -18,10 +19,7 @@ def main():
 
 def plot(load_dir: str, headless: bool=False):
     ## Params
-    deg = True
-    legend = True
     fontsize = 14
-    figsize = (1000,800)
     img_types = ['svg', 'pdf']
 
     ## Load Data
@@ -208,7 +206,7 @@ def plot(load_dir: str, headless: bool=False):
     ######## END: K Analysis ########
 
     ######## START: Aff vs Lin Analysis ########
-    pw4 = app.createPlotWindow('Time Tracking: Aff vs Lin')
+    pw4 = app.createPlotWindow('Time Tracking: Aff vs Lin', fontsize=10, fig_size=(500,420))
 
     def getIndices(costs):
         idx = np.argmin(costs)
@@ -234,32 +232,36 @@ def plot(load_dir: str, headless: bool=False):
         best_aff_states = aff_xeq_states[xeq_k_idx,xeq_c_idx]
     else:
         best_aff_states = lin_states[lin_k_idx,lin_c_idx]
+    print(f'k={lin_k_idx}, c={lin_c_idx}')
 
     min_cost = np.min(best_costs)
-    best_lin_reduction = (1 - min_cost / aff_mc[-1]) * 100
+    best_lin_reduction = (1 - min_cost / best_costs[-1]) * 100
     nom_aff_reduction = (1 - min_cost / aff_uk_costs[0,0]) * 100
     nom_lin_reduction = (1 - min_cost / lin_costs[0,0]) * 100
     print(f'best lin vs best aff: {best_lin_reduction:.2f}% reduction')
     print(f'nom aff vs best aff: {nom_aff_reduction:.2f}% reduction')
     print(f'nom lin vs best aff: {nom_lin_reduction:.2f}% reduction')
 
-    base_points = [r'$(x_0,u_{-1})$', r'$(x_0,u_e)$', r'$(x_e,u_{-1})$', r'$(x_e,u_e)$']
     k = k_idxs[idx]
     c_idx = c_idxs[idx]
-    lbl = f'best aff: k={k+1}, c={c_list[c_idx]:.1f}, p={base_points[idx]}'
+
+    lw = 1.25
+
+    lbl = f'best aff: k={k+1}, c={c_list[c_idx]:.1f}, p={C.ANCHOR_POINTS[idx]}'
     print(lbl)
-    # pw4.plotStateLine(time, best_aff_states, 'm', label=lbl[:8])
-    # pw4.plotStateLine(time, aff_uk_states[0,0], 'b--', label=f'nom aff')
-    pw4.plotStateLine(time, best_aff_states, label=lbl[:8])
-    pw4.plotStateLine(time, aff_uk_states[0,0], '-.', label=f'nom aff')
+    pw4.plotStateLine(time, best_aff_states, C.LINE_STYLES['best'], label=lbl[:8],
+                      color=C.COLORS['best_aff'], linewidth=lw)
+    pw4.plotStateLine(time, aff_uk_states[0,0], C.LINE_STYLES['nom'], label=f'nom aff',
+                      color=C.COLORS['nom_aff'], linewidth=lw)
     lin_c = c_list[lin_c_idx]
-    lbl = f'best lin: k = {lin_k_idx+1}, c = {lin_c:.1f}'
+    lbl = f'best lin: k={lin_k_idx+1}, c={lin_c:.1f}'
     print(lbl)
-    # pw4.plotStateLine(time, lin_states[lin_k,lin_c_idx], 'g', label=lbl[:8])
-    # pw4.plotStateLine(time, lin_states[0,0], 'r--', label=f'nom lin')
-    pw4.plotStateLine(time, lin_states[lin_k_idx,lin_c_idx], label=lbl[:8])
-    pw4.plotStateLine(time, lin_states[0,0], '-.', label=f'nom lin')
-    pw4.plotStateLine(time, xr_hist, '--', linewidth=2, label='ref')
+    pw4.plotStateLine(time, lin_states[lin_k_idx,lin_c_idx], C.LINE_STYLES['best'],
+                      label=lbl[:8], color=C.COLORS['best_lin'], linewidth=lw)
+    pw4.plotStateLine(time, lin_states[0,0], C.LINE_STYLES['nom'], label=f'nom lin',
+                      color=C.COLORS['nom_lin'], linewidth=lw)
+    pw4.plotStateLine(time, xr_hist, C.LINE_STYLES['ref'], label='ref',
+                      color=C.COLORS['ref'], linewidth=lw)
     ######## END: Aff vs Lin Analysis ########
 
 

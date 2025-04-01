@@ -1,5 +1,6 @@
 METHODS = ['best_aff', 'nom_aff', 'best_lin', 'nom_lin']
 ANCHOR_POINTS = ['(xt,ut)', '(xt,ue)', '(xe,ut)', '(xe,ue)']
+ANCHOR_POINTS_RAW = [r'$(x_t,u_t)$', r'$(x_t,u_e)$', r'$(x_e,u_t)$', r'$(x_e,u_e)$']
 # COLORS = ['tab:pink', 'tab:blue', 'tab:orange', 'tab:green']
 # REF_COLOR = 'tab:red'
 
@@ -15,4 +16,10 @@ COLORS = {
     2: 'tab:orange',
     3: 'tab:green',
     4: 'tab:red',
+}
+
+LINE_STYLES = {
+    'best': '-',
+    'nom': '-.',
+    'ref': '--',
 }

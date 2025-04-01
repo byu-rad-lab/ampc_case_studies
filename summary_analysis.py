@@ -181,27 +181,26 @@ def main():
     beam_cos = ['cos_0.2_1', 'cos_0.2_2', 'cos_0.2_3', 'cos_0.2_4', 'cos_0.2_5']
 
     pendulum_steps = ['step_5', 'step_15', 'step_30', 'step_45']
+    pendulum_ramps = ['ramp_5', 'ramp_15', 'ramp_30', 'ramp_45']
     pendulum_cos_15s = ['cos_15_1', 'cos_15_2', 'cos_15_3', 'cos_15_4']
     pendulum_cos_25s = ['cos_25_1', 'cos_25_2', 'cos_25_3', 'cos_25_4']
-    pendulum_ramps = ['ramp_5', 'ramp_15', 'ramp_30', 'ramp_45']
 
     pendulumz_steps = ['stepz_1', 'stepz_2', 'stepz_5', 'stepz_10']
+    pendulumz_ramps = ['rampz_2', 'rampz_3', 'rampz_4', 'rampz_5']
     pendulumz_cos_2s = ['cosz_2_1', 'cosz_2_2', 'cosz_2_3', 'cosz_2_4']
     pendulumz_cos_5s = ['cosz_5_1', 'cosz_5_2', 'cosz_5_3', 'cosz_5_4']
-    pendulumz_ramps = ['rampz_2', 'rampz_3', 'rampz_4', 'rampz_5']
 
-    multirotor_steps_q2 = ['step_1_pi2_q2', 'step_2_pi1.5_q2', 'step_5_pi_q2', 'step_10_2pi_q2']
-    multirotor_wavy_q2 = ['wavy_1_5_2_6_q2', 'wavy_1_5_4_6_q2', 'wavy_2_5_2_6_q2', 'wavy_2_4_5_4_q2']
-    multirotor_ramp1s = ['ramp1_5', 'ramp1_10', 'ramp1_15', 'ramp1_20', 'ramp1_25']
-    multirotor_ramp3s = ['ramp3_6', 'ramp3_7', 'ramp3_8', 'ramp3_9', 'ramp3_10']
+    uas_steps = ['step_1_pi2_q2', 'step_2_pi1.5_q2', 'step_5_pi_q2', 'step_10_2pi_q2']
+    uas_ramp1s = ['ramp1_5', 'ramp1_10', 'ramp1_15', 'ramp1_20', 'ramp1_25']
+    uas_ramp3s = ['ramp3_6', 'ramp3_7', 'ramp3_8', 'ramp3_9', 'ramp3_10']
+    uas_wavy = ['wavy_1_5_2_6_q2', 'wavy_1_5_4_6_q2', 'wavy_2_5_2_6_q2', 'wavy_2_4_5_4_q2']
 
     ref_cmds = {
         'arm': arm_steps + arm_ramps + arm_cos_60s + arm_cos_90s,
         'beam': beam_steps + beam_ramps + beam_cos,
-        'pendulum': pendulum_steps + pendulum_cos_15s + pendulum_cos_25s + pendulum_ramps,
-        'pendulumz': pendulumz_steps + pendulumz_cos_2s + pendulumz_cos_5s + pendulumz_ramps,
-        'multirotor': [*multirotor_steps_q2, *multirotor_wavy_q2,
-                       *multirotor_ramp1s, *multirotor_ramp3s]
+        'pendulum': pendulum_steps + pendulum_ramps + pendulum_cos_15s + pendulum_cos_25s,
+        'pendulumz': pendulumz_steps + pendulumz_ramps + pendulumz_cos_2s + pendulumz_cos_5s,
+        'multirotor': uas_steps + uas_ramp1s + uas_ramp3s + uas_wavy
     }
 
     for system in systems:
@@ -299,11 +298,14 @@ def summaryAnalysis(data: SimData, table: AnalysisTable):
 
     method = np.argmin(min_costs)
     if method == 0:
-        table.best_method.append(r'$(x_0,u_{-1})$')
+        # table.best_method.append(r'$(x_0,u_{-1})$')
+        table.best_method.append(r'$(x_t,u_t)$')
     elif method == 1:
-        table.best_method.append(r'$(x_0,u_e)$')
+        # table.best_method.append(r'$(x_0,u_e)$')
+        table.best_method.append(r'$(x_t,u_e)$')
     elif method == 2:
-        table.best_method.append(r'$(x_e,u_{-1})$')
+        # table.best_method.append(r'$(x_e,u_{-1})$')
+        table.best_method.append(r'$(x_e,u_t)$')
     else:
         table.best_method.append(r'$(x_e,u_e)$')
     return

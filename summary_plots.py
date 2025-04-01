@@ -4,9 +4,10 @@ import os
 import pickle
 
 from case_studies.plot_application import PlotApplication, TabbedWindow, FigureSpacing
+import constants as C
 
 import matplotlib
-matplotlib.rcParams['axes.formatter.limits'] = (-3, 3) # display 3 sig figs
+# matplotlib.rcParams['axes.formatter.limits'] = (-3, 3) # display 3 sig figs
 
 
 def main():
@@ -28,13 +29,13 @@ def main():
     ref_types = {
         'arm': ['step', 'ramp', 'cos_60', 'cos_90'],
         'beam': ['step', 'ramp', 'cos'],
-        'pendulum': ['step', 'cos_15', 'cos_25', 'ramp'],
-        'pendulumz': ['stepz', 'cosz_2', 'cosz_5', 'rampz'],
-        'multirotor': ['step', 'wavy', 'ramp1', 'ramp3']
+        'pendulum': ['step', 'ramp', 'cos_15', 'cos_25'],
+        'pendulumz': ['stepz', 'rampz', 'cosz_2', 'cosz_5'],
+        'multirotor': ['step', 'ramp1', 'ramp3', 'wavy']
     }
 
     app = PlotApplication()
-    size = [500, 700]
+    size = [400, 650]
     cost_win = TabbedWindow(f'wIAE', size)
     reduction_win = TabbedWindow(f'affinization % reduction', size)
     # improvement_win = TabbedWindow(f'affinization % improvement', size)
@@ -100,19 +101,24 @@ def main():
         reduction_win.addTab(f'{system}', fig_reductions)
         # fig_improvements, ax_improvements = plt.subplots(n)
         # improvement_win.addTab(f'{system}', fig_improvements)
+
         for i in range(n):
             title = f'{ref_types[system][i].replace("_", " ").replace("z", "")}'
 
             a: plt.Axes = ax_costs[i]
+            # a.set_title(title.capitalize())
             a.set_title(title)
             x = np.arange(len(cost_best_aff[i])) + 1
-            a.plot(x, cost_best_aff[i], 'm', label='best aff')
-            a.plot(x, cost_nom_aff[i], 'b--', label='nom aff')
-            a.plot(x, cost_best_lin[i], 'g', label='best lin')
-            a.plot(x, cost_nom_lin[i], 'r--', label='nom lin')
+            a.plot(x, cost_best_aff[i], C.LINE_STYLES['best'], label='best aff',
+                   color=C.COLORS['best_aff'])
+            a.plot(x, cost_nom_aff[i],  C.LINE_STYLES['nom'],  label='nom aff',
+                   color=C.COLORS['nom_aff'])
+            a.plot(x, cost_best_lin[i], C.LINE_STYLES['best'], label='best lin',
+                   color=C.COLORS['best_lin'])
+            a.plot(x, cost_nom_lin[i],  C.LINE_STYLES['nom'],  label='nom lin',
+                   color=C.COLORS['nom_lin'])
             a.set_ylabel('wIAE')
-            # if system == 'multirotor':
-            #     a.set_yscale('log')
+            a.set_yscale('log')
             if i == n-1:
                 a.set_xlabel('difficulty')
             a.set_xticks(x)
@@ -122,11 +128,15 @@ def main():
                 a.legend(ncol=2)
 
             a: plt.Axes = ax_reductions[i]
+            # a.set_title(title.capitalize())
             a.set_title(title)
             x = np.arange(len(aff_reductions[i])) + 1
-            a.plot(x, aff_reductions[i], 'b--', label='nom aff')
-            a.plot(x, best_lin_reductions[i], 'g', label='best lin')
-            a.plot(x, nom_lin_reductions[i], 'r-.', label='nom lin')
+            a.plot(x, aff_reductions[i], C.LINE_STYLES['nom'], label='nom aff',
+                   color=C.COLORS['nom_aff'])
+            a.plot(x, best_lin_reductions[i], C.LINE_STYLES['best'], label='best lin',
+                   color=C.COLORS['best_lin'])
+            a.plot(x, nom_lin_reductions[i], C.LINE_STYLES['nom'], label='nom lin',
+                   color=C.COLORS['nom_lin'])
 
             # print(f'{system} {ref_types[system][i]} mean reductions: ', end='')
             # aff_mean = np.mean(aff_reductions[i])
@@ -215,7 +225,7 @@ def main():
     c_reduction_all = np.array(c_reduction_all)
     k_reduction_all = np.array(k_reduction_all)
 
-    win1 = TabbedWindow('System Analysis', size=[500,400])
+    win1 = TabbedWindow('System Analysis', size=[400,400])
 
     # hist_data = np.zeros(total_trials)
     # hist_data[:total_count] = 1
@@ -229,7 +239,7 @@ def main():
     a.set_xticks(np.arange(0, 1.1, 0.1))
     a: plt.Axes = ax_reductions[1]
     a.hist(c_reduction_all, bins=15, align='mid', rwidth=0.8)
-    a.set_xlabel(f'c % reduction')
+    a.set_xlabel(f'% reduction from c')
     a.set_ylabel('count')
     win1.addTab('c', fig)
 
@@ -240,7 +250,7 @@ def main():
     a.set_ylabel('count')
     a: plt.Axes = ax_reductions[1]
     a.hist(k_reduction_all, bins=15, align='mid', rwidth=0.8)
-    a.set_xlabel(f'k % reduction')
+    a.set_xlabel(f'% reduction from k')
     a.set_ylabel('count')
     win1.addTab('k', fig)
 
@@ -280,11 +290,12 @@ def main():
     fig, ax_reductions = plt.subplots()
     a: plt.Axes = ax_reductions
     bins = [-5, 5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105]
-    lbl = ' vs best aff'
+    lbl = 'best aff vs '
     a.hist([aff_reductions_all, best_lin_reductions_all, nom_lin_reductions_all],
             bins=bins, stacked=False, align='mid',
-            label=['nom aff'+lbl, 'best lin'+lbl, 'nom lin'+lbl])
-    a.set_xlabel(f'% reduction')
+            label=[lbl+'nom aff', lbl+'best lin', lbl+'nom lin'],
+            color=[C.COLORS[1], C.COLORS[2], C.COLORS[3]])
+    a.set_xlabel(f'% reduction of wIAE')
     a.set_ylabel('count')
     # a.set_title(f'Histogram of % Reductions')# Comparing other Methods to Nominal Affinization')
     a.legend()
@@ -294,16 +305,17 @@ def main():
     fig, ax_methods = plt.subplots()
     a: plt.Axes = ax_methods
     bins = np.arange(0, 5, 1) - 0.5
-    labels = [r'$(x_0,u_{-1})$', r'$(x_0,u_e)$', r'$(x_e,u_{-1})$', r'$(x_e,u_e)$']
     best_methods = np.array(best_methods).ravel()
     methods = np.empty(best_methods.shape, dtype=int)
-    for i, label in enumerate(labels):
+    for i, label in enumerate(C.ANCHOR_POINTS_RAW):
         methods[best_methods == label] = i
     # a.hist(summary['best_method'], bins, range=(0,1), align='mid', rwidth=0.8)
     # a.hist(best_methods, bins, align='mid', rwidth=0.8)
     a.hist(methods, bins, align='mid', rwidth=0.8)
     a.set_xticks(np.arange(0, 4))
-    a.set_xticklabels(labels)
+    a.set_xticklabels(C.ANCHOR_POINTS_RAW)
+    a.set_xlabel('anchor point')
+    a.set_ylabel('count')
     win1.addTab('best method', fig)
 
     # print(f'count aff: {np.sum(summary["best_method"] == "aff (x0,u0)")}')
