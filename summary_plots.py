@@ -307,13 +307,13 @@ def main():
     bins = np.arange(0, 5, 1) - 0.5
     best_methods = np.array(best_methods).ravel()
     methods = np.empty(best_methods.shape, dtype=int)
-    for i, label in enumerate(C.ANCHOR_POINTS_RAW):
+    for i, label in enumerate(C.ANCHOR_POINTS_LATEX):
         methods[best_methods == label] = i
     # a.hist(summary['best_method'], bins, range=(0,1), align='mid', rwidth=0.8)
     # a.hist(best_methods, bins, align='mid', rwidth=0.8)
     a.hist(methods, bins, align='mid', rwidth=0.8)
     a.set_xticks(np.arange(0, 4))
-    a.set_xticklabels(C.ANCHOR_POINTS_RAW)
+    a.set_xticklabels(C.ANCHOR_POINTS_LATEX)
     a.set_xlabel('anchor point')
     a.set_ylabel('count')
     win1.addTab('best method', fig)

@@ -1,8 +1,7 @@
 METHODS = ['best_aff', 'nom_aff', 'best_lin', 'nom_lin']
 ANCHOR_POINTS = ['(xt,ut)', '(xt,ue)', '(xe,ut)', '(xe,ue)']
-ANCHOR_POINTS_RAW = [r'$(x_t,u_t)$', r'$(x_t,u_e)$', r'$(x_e,u_t)$', r'$(x_e,u_e)$']
-# COLORS = ['tab:pink', 'tab:blue', 'tab:orange', 'tab:green']
-# REF_COLOR = 'tab:red'
+ANCHOR_POINTS_LATEX = [f"${pt.replace('x','x_').replace('u','u_')}$"
+                       for pt in ANCHOR_POINTS]
 
 COLORS = {
     'best_aff': 'tab:pink',
