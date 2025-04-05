@@ -227,10 +227,13 @@ def main():
 
     win1 = TabbedWindow('System Analysis', size=[400,400])
 
+    # fig_summary,ax_summary = plt.subplots(3)
+
     # hist_data = np.zeros(total_trials)
     # hist_data[:total_count] = 1
     fig, ax_reductions = plt.subplots(2)
     a: plt.Axes = ax_reductions[0]
+    # a: plt.Axes = ax_summary[1]
     bins = np.arange(0, 1.2, 0.1) - 0.05
     a.hist(c_all, bins, range=(0,1), align='mid', rwidth=0.8)
     a.set_xlabel('c')
@@ -245,6 +248,7 @@ def main():
 
     fig, ax_reductions = plt.subplots(2)
     a: plt.Axes = ax_reductions[0]
+    # a: plt.Axes = ax_summary[2]
     a.hist(k_all, bins=11, align='mid', rwidth=0.8)
     a.set_xlabel('k')
     a.set_ylabel('count')
@@ -301,9 +305,11 @@ def main():
     a.legend()
     # win.addTab('all v2', fig)
     win1.addTab('reductions', fig)
+    print(f'Total reference trajectories: {len(aff_reductions_all)}')
 
     fig, ax_methods = plt.subplots()
     a: plt.Axes = ax_methods
+    # a: plt.Axes = ax_summary[0]
     bins = np.arange(0, 5, 1) - 0.5
     best_methods = np.array(best_methods).ravel()
     methods = np.empty(best_methods.shape, dtype=int)
@@ -317,6 +323,7 @@ def main():
     a.set_xlabel('anchor point')
     a.set_ylabel('count')
     win1.addTab('best method', fig)
+    # win1.addTab('summary', fig_summary)
 
     # print(f'count aff: {np.sum(summary["best_method"] == "aff (x0,u0)")}')
 
