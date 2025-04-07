@@ -6,13 +6,13 @@ import pickle
 from case_studies.plot_application import PlotApplication, TabbedWindow, FigureSpacing
 import constants as C
 
-import matplotlib
+# import matplotlib
 # matplotlib.rcParams['axes.formatter.limits'] = (-3, 3) # display 3 sig figs
 
 
 def main():
-    load_dir = f'{os.environ["HOME"]}/data/ampc24/analysis/summary'
-    systems = ['arm', 'beam', 'pendulum', 'pendulumz', 'multirotor']
+    load_dir = f'{os.environ["HOME"]}/data/ampc_case_studies/summary'
+    systems = ['arm', 'beam', 'pendulum', 'cart', 'multirotor']
     total_count = 0
     total_trials = 0
     c_all = []
@@ -30,7 +30,7 @@ def main():
         'arm': ['step', 'ramp', 'cos_60', 'cos_90'],
         'beam': ['step', 'ramp', 'cos'],
         'pendulum': ['step', 'ramp', 'cos_15', 'cos_25'],
-        'pendulumz': ['stepz', 'rampz', 'cosz_2', 'cosz_5'],
+        'cart': ['step', 'ramp', 'cos_2', 'cos_5'],
         'multirotor': ['step', 'ramp1', 'ramp3', 'wavy']
     }
 
@@ -41,13 +41,10 @@ def main():
     # improvement_win = TabbedWindow(f'affinization % improvement', size)
 
     for system in systems:
-        uk = np.load(f'{load_dir}/{system}_aff_uk.npz')
-        ueq = np.load(f'{load_dir}/{system}_aff_ueq.npz')
-        xeq = np.load(f'{load_dir}/{system}_aff_xeq.npz')
-        lin = np.load(f'{load_dir}/{system}_lin.npz')
+        m_table = {}
+        for p in C.ANCHOR_POINTS:
+            m_table[p] = np.load(f'{load_dir}/{system}_{p[1:-1].replace(",", "_")}.npz')
         summary = np.load(f'{load_dir}/{system}_analysis.npz')
-
-        methods = [uk, ueq, xeq, lin]
 
         refs: list[str] = ref_cmds[system]
         cost_best_aff = []
@@ -182,9 +179,8 @@ def main():
 
         errors = []
         ck_better = []
-        for method in methods:
-            # idx = refs.find
-            # ref_type =
+        for p in C.ANCHOR_POINTS:
+            method = m_table[p]
             c = method['c_best']
             k = method['k_best']
             c_is_nominal = c == 0
@@ -219,7 +215,6 @@ def main():
 
     print(f'better {total_count} times of {total_trials} ({100*total_count/total_trials:.2f}%)')
 
-    # c_all = np.array([c for c_row in c_all for c in c_row]).flatten()
     c_all = np.array(c_all)
     k_all = np.array(k_all)
     c_reduction_all = np.array(c_reduction_all)
@@ -325,7 +320,7 @@ def main():
     win1.addTab('best method', fig)
     # win1.addTab('summary', fig_summary)
 
-    # print(f'count aff: {np.sum(summary["best_method"] == "aff (x0,u0)")}')
+    # print(f'count aff: {np.sum(summary["best_method"] == "(xt,ut)")}')
 
     # app.addWindow(win)
 

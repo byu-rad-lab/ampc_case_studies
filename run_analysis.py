@@ -7,6 +7,7 @@ import case_studies.cart_pendulum.simulator as pendulum_sim
 import case_studies.multirotor.simulator as multirotor_sim
 import plot_analysis as plotter
 from parsing import getParsedArgs_run
+import constants as C
 
 
 def main():
@@ -36,121 +37,33 @@ def main():
     # run a random sim
     c = np.random.rand()
     print(f'c init: {c}')
-    _,_,_,_,_ = sim.run(c, k=0, method='lin')
+    _,_,_,_,_ = sim.run(C.ANCHOR_POINTS[-1], c, k=0)
 
-    aff_uk_costs_all = []
-    aff_uk_states_all = []
-    aff_uk_inputs_all = []
-    aff_uk_st_all = []
+    k_len = len(k_list)
+    c_len = len(c_list)
+    t_len = len(sim.time)
+    costs = {p: np.empty((k_len,c_len)) for p in C.ANCHOR_POINTS}
+    states = {p: np.empty((k_len,c_len,t_len,sim.n)) for p in C.ANCHOR_POINTS}
+    inputs = {p: np.empty((k_len,c_len,t_len-1,sim.m)) for p in C.ANCHOR_POINTS}
+    solve_times = {p: np.empty((k_len,c_len,t_len-1)) for p in C.ANCHOR_POINTS}
 
-    aff_ueq_costs_all = []
-    aff_ueq_states_all = []
-    aff_ueq_inputs_all = []
-    aff_ueq_st_all = []
-
-    aff_xeq_costs_all = []
-    aff_xeq_states_all = []
-    aff_xeq_inputs_all = []
-    aff_xeq_st_all = []
-
-    lin_costs_all = []
-    lin_states_all = []
-    lin_inputs_all = []
-    lin_st_all = []
-
-    for kr in tqdm(k_list, desc='K Loop'):
-        aff_uk_costs = []
-        aff_uk_states = []
-        aff_uk_inputs = []
-        aff_uk_st = []
-
-        aff_ueq_costs = []
-        aff_ueq_states = []
-        aff_ueq_inputs = []
-        aff_ueq_st = []
-
-        aff_xeq_costs = []
-        aff_xeq_states = []
-        aff_xeq_inputs = []
-        aff_xeq_st = []
-
-        lin_costs = []
-        lin_states = []
-        lin_inputs = []
-        lin_st = []
-
-        for c in tqdm(c_list, desc='C Loop', leave=False):
-            cost, x_hist, xr_hist, u_hist, st_hist = sim.run(c, kr, method='uk')
-            aff_uk_costs.append(cost)
-            aff_uk_states.append(x_hist)
-            aff_uk_inputs.append(u_hist)
-            aff_uk_st.append(st_hist)
-
-            cost, x_hist, xr_hist, u_hist, st_hist = sim.run(c, kr, method='ueq')
-            aff_ueq_costs.append(cost)
-            aff_ueq_states.append(x_hist)
-            aff_ueq_inputs.append(u_hist)
-            aff_ueq_st.append(st_hist)
-
-            cost, x_hist, xr_hist, u_hist, st_hist = sim.run(c, kr, method='xeq')
-            aff_xeq_costs.append(cost)
-            aff_xeq_states.append(x_hist)
-            aff_xeq_inputs.append(u_hist)
-            aff_xeq_st.append(st_hist)
-
-            cost, x_hist, xr_hist, u_hist, st_hist = sim.run(c, kr, method='lin')
-            lin_costs.append(cost)
-            lin_states.append(x_hist)
-            lin_inputs.append(u_hist)
-            lin_st.append(st_hist)
-
-        aff_uk_costs_all.append(aff_uk_costs)
-        aff_uk_states_all.append(aff_uk_states)
-        aff_uk_inputs_all.append(aff_uk_inputs)
-        aff_uk_st_all.append(aff_uk_st)
-
-        aff_ueq_costs_all.append(aff_ueq_costs)
-        aff_ueq_states_all.append(aff_ueq_states)
-        aff_ueq_inputs_all.append(aff_ueq_inputs)
-        aff_ueq_st_all.append(aff_ueq_st)
-
-        aff_xeq_costs_all.append(aff_xeq_costs)
-        aff_xeq_states_all.append(aff_xeq_states)
-        aff_xeq_inputs_all.append(aff_xeq_inputs)
-        aff_xeq_st_all.append(aff_xeq_st)
-
-        lin_costs_all.append(lin_costs)
-        lin_states_all.append(lin_states)
-        lin_inputs_all.append(lin_inputs)
-        lin_st_all.append(lin_st)
+    for k_idx,k in enumerate(tqdm(k_list, desc='K Loop')):
+        for c_idx,c in enumerate(tqdm(c_list, desc='C Loop', leave=False)):
+            for p in C.ANCHOR_POINTS:
+                cost, x_hist, xr_hist, u_hist, st_hist = sim.run(p, c, k)
+                costs[p][k_idx,c_idx] = cost
+                states[p][k_idx,c_idx] = x_hist
+                inputs[p][k_idx,c_idx] = u_hist
+                solve_times[p][k_idx,c_idx] = st_hist
 
     np.save(args.dir + 'time.npy', sim.time)
-
-    np.save(args.dir + 'aff_uk_costs.npy', np.array(aff_uk_costs_all))
-    np.save(args.dir + 'aff_uk_states.npy', np.array(aff_uk_states_all))
-    np.save(args.dir + 'aff_uk_inputs.npy', np.array(aff_uk_inputs_all))
-    np.save(args.dir + 'aff_uk_solve_times.npy', np.array(aff_uk_st_all))
-
-    np.save(args.dir + 'aff_ueq_costs.npy', np.array(aff_ueq_costs_all))
-    np.save(args.dir + 'aff_ueq_states.npy', np.array(aff_ueq_states_all))
-    np.save(args.dir + 'aff_ueq_inputs.npy', np.array(aff_ueq_inputs_all))
-    np.save(args.dir + 'aff_ueq_solve_times.npy', np.array(aff_ueq_st_all))
-
-    np.save(args.dir + 'aff_xeq_costs.npy', np.array(aff_xeq_costs_all))
-    np.save(args.dir + 'aff_xeq_states.npy', np.array(aff_xeq_states_all))
-    np.save(args.dir + 'aff_xeq_inputs.npy', np.array(aff_xeq_inputs_all))
-    np.save(args.dir + 'aff_xeq_solve_times.npy', np.array(aff_xeq_st_all))
-
-    np.save(args.dir + 'lin_costs.npy', np.array(lin_costs_all))
-    np.save(args.dir + 'lin_states.npy', np.array(lin_states_all))
-    np.save(args.dir + 'lin_inputs.npy', np.array(lin_inputs_all))
-    np.save(args.dir + 'lin_solve_times.npy', np.array(lin_st_all))
-
+    np.savez(args.dir + 'costs.npz', **costs)
+    np.savez(args.dir + 'states.npz', **states)
+    np.savez(args.dir + 'inputs.npz', **inputs)
+    np.savez(args.dir + 'solve_times.npz', **solve_times)
     np.save(args.dir + 'ref_states.npy', xr_hist)
-
     np.save(args.dir + 'Q.npy', sim.Q)
     np.save(args.dir + 'k_list.npy', k_list)
-
     with open(args.dir + 'system.txt', 'w') as f:
         f.write(args.system)
 

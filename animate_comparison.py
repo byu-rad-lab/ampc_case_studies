@@ -1,8 +1,6 @@
 import numpy as np
-# from tqdm import tqdm
 import os
 import matplotlib.pyplot as plt
-# import matplotlib.animation as animation
 
 from case_studies.animation import StackedAnimation
 from case_studies.single_link_arm.animation import ArmAnimator
@@ -33,62 +31,38 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
 
     time = np.load(os.path.join(load_dir, 'time.npy'))
     xr_hist = np.load(os.path.join(load_dir, 'ref_states.npy'))
+    x_hist = np.load(os.path.join(load_dir, 'states.npz'))
+    costs = np.load(os.path.join(load_dir, 'costs.npz'))
 
-    aff_uk_costs = np.load(os.path.join(load_dir, 'aff_uk_costs.npy'))
-    aff_ueq_costs = np.load(os.path.join(load_dir, 'aff_ueq_costs.npy'))
-    aff_xeq_costs = np.load(os.path.join(load_dir, 'aff_xeq_costs.npy'))
-    lin_costs = np.load(os.path.join(load_dir, 'lin_costs.npy'))
+    min_costs = np.empty(len(C.ANCHOR_POINTS))
+    min_idx = {}
+    for i, p in enumerate(C.ANCHOR_POINTS):
+        min_idx[p] = np.unravel_index(np.argmin(costs[p]), costs[p].shape)
+        min_costs[i] = costs[p][min_idx[p]]
 
-    aff_uk_min_idx = np.unravel_index(np.argmin(aff_uk_costs), aff_uk_costs.shape)
-    aff_ueq_min_idx = np.unravel_index(np.argmin(aff_ueq_costs), aff_ueq_costs.shape)
-    aff_xeq_min_idx = np.unravel_index(np.argmin(aff_xeq_costs), aff_xeq_costs.shape)
-    lin_min_idx = np.unravel_index(np.argmin(lin_costs), lin_costs.shape)
-
-    min_costs = [aff_uk_costs[aff_uk_min_idx], aff_ueq_costs[aff_ueq_min_idx],
-                 aff_xeq_costs[aff_xeq_min_idx], lin_costs[lin_min_idx]]
     idx = np.argmin(min_costs)
-    if idx == 0:
-        anchor_pt = '(xt,ut)'
-        states = np.load(os.path.join(load_dir, 'aff_uk_states.npy'))
-        states_top = states[aff_uk_min_idx]
-        best_idx = aff_uk_min_idx
-    elif idx == 1:
-        anchor_pt = '(xt,ue)'
-        states = np.load(os.path.join(load_dir, 'aff_ueq_states.npy'))
-        states_top = states[aff_ueq_min_idx]
-        best_idx = aff_ueq_min_idx
-    elif idx == 2:
-        anchor_pt = '(xe,ut)'
-        states = np.load(os.path.join(load_dir, 'aff_xeq_states.npy'))
-        states_top = states[aff_xeq_min_idx]
-        best_idx = aff_xeq_min_idx
-    else:
-        anchor_pt = '(xe,ue)'
-        states = np.load(os.path.join(load_dir, 'lin_states.npy'))
-        states_top = states[lin_min_idx]
-        best_idx = lin_min_idx
+    best_p = C.ANCHOR_POINTS[idx]
+    best_idx = min_idx[best_p]
+    states_top = x_hist[best_p][best_idx]
 
-    print(f'Top: {anchor_pt}, c={best_idx[1]/10:.1f}, k={best_idx[0]+1} \t Best Affinization')
+    print(f'Top: {best_p}, c={best_idx[1]/10:.1f}, k={best_idx[0]+1} \t Best Affinization')
 
     if method in C.METHODS:
         match method:
             case 'best_aff':
-                anchor_point = anchor_pt
+                anchor_point = best_p
                 k_idx, c_idx = best_idx
                 label_bot = "Best Affinization"
             case 'best_lin':
-                states = np.load(os.path.join(load_dir, 'lin_states.npy'))
                 anchor_point = C.ANCHOR_POINTS[-1]
                 k_idx, c_idx = best_idx
                 label_bot = "Best Linearization"
             case 'nom_aff':
-                states = np.load(os.path.join(load_dir, 'aff_uk_states.npy'))
                 anchor_point = C.ANCHOR_POINTS[0]
                 k_idx = 0
                 c_idx = 0
                 label_bot = "Nominal Affinization"
             case 'nom_lin':
-                states = np.load(os.path.join(load_dir, 'lin_states.npy'))
                 anchor_point = C.ANCHOR_POINTS[-1]
                 k_idx = 0
                 c_idx = 0
@@ -97,31 +71,16 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
                 raise ValueError(f'Invalid method: {method}')
         color_bot = C.COLORS[method]
     else:
-        match anchor_point:
-            case '(xt,ut)':
-                states = np.load(os.path.join(load_dir, 'aff_uk_states.npy'))
-                costs = np.load(os.path.join(load_dir, 'aff_uk_costs.npy'))
-            case '(xt,ue)':
-                states = np.load(load_dir + 'aff_ueq_states.npy')
-                costs = np.load(load_dir + 'aff_ueq_costs.npy')
-            case '(xe,ut)':
-                states = np.load(load_dir + 'aff_xeq_states.npy')
-                costs = np.load(load_dir + 'aff_xeq_costs.npy')
-            case '(xe,ue)':
-                states = np.load(load_dir + 'lin_states.npy')
-                costs = np.load(load_dir + 'lin_costs.npy')
-            case _:
-                raise ValueError(f'Invalid approx_pt: {anchor_point}')
         if c_idx == -1 and k_idx == -1:
-            k_idx,c_idx = np.unravel_index(np.argmin(costs), costs.shape)
+            k_idx,c_idx = min_idx[anchor_point]
         elif c_idx == -1:
-            c_idx = np.argmin(costs[k_idx])
+            c_idx = np.argmin(costs[anchor_point][k_idx])
         elif k_idx == -1:
-            k_idx = np.argmin(costs[:,c_idx])
+            k_idx = np.argmin(costs[anchor_point][:,c_idx])
         color_bot = 'tab:gray'
         label_bot = 'Manual Selection'
 
-    states_bot = states[k_idx, c_idx]
+    states_bot = x_hist[anchor_point][k_idx, c_idx]
     bot_info = f'{anchor_point}, c={c_idx/10:.1f}, k={k_idx+1} \t {label_bot}'
     print(f'Bot: {bot_info}')
     if label_bot == '':

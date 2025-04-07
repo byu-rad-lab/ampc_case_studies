@@ -42,42 +42,35 @@ class Simulator:
         self.mpc.initializeSolver(settings)
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
-                           k: int, u_prev: np.ndarray, method: str):
+                           k: int, u_prev: np.ndarray, anchor_pt: str):
         xr = xr_traj[k]
-        if method == 'uk':
-            mask = np.ones_like(x)
-            up = u_prev
-        elif method == 'ueq':
-            mask = np.ones_like(x)
-            up = np.array([self.sys.s_eq, 0,0,0])
-        elif method == 'xeq':
+        if 'xe' in anchor_pt:
             mask = np.array([0,0,0,0,0,1,0,0,0])
-            up = u_prev
-        elif method == 'lin':
-            mask = np.array([0,0,0,0,0,1,0,0,0])
-            up = np.array([self.sys.s_eq, 0,0,0])
         else:
-            # mask = np.array([0,0,0,0,0,1,1,1,1])
-            raise ValueError('Unrecognized lin/aff method')
+            mask = np.ones_like(x)
         xp = (1-c)*x*mask + c*xr*mask
+        if 'ut' in anchor_pt:
+            up = u_prev
+        else:
+            up = self.sys.getEquilibriumInput(xp)
         model = self.sys.affinize(xp, up)
         self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt)
 
-    def run(self, c: int, k: int=0, method: str='uk'):
+    def run(self, anchor_pt: str, c: int, k: int=0):
         x = self.x0.copy()
         x_hist = [x.copy()]
         xr_hist = [self.getRefTrajectory(0)[0].copy()]
         u_hist = []
         solve_times = []
         cost_integral = 0.0
-        u_star = np.array([self.sys.s_eq, 0,0,0])
+        u_star = self.sys.getEquilibriumInput(x)
         self._setupMPC()
 
         for t in self.time[:-1]:
             start = now()
             xr_traj = self.getRefTrajectory(t)
             self.mpc.setReferenceStateTrajectory(xr_traj.flatten())
-            self.updateControlModel(x, xr_traj, c, k, u_star, method)
+            self.updateControlModel(x, xr_traj, c, k, u_star, anchor_pt)
             solved = self.mpc.solve(x)
             if solved:
                 _ = self.mpc.getNextInput(u_star)

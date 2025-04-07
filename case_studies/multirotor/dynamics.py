@@ -30,6 +30,9 @@ class Multirotor(model.ModelBase):
             self.affinize = self.affinize_inertialVelocity
             self.linearize = self.linearize_inertialVelocity
 
+    def getEquilibriumInput(self, x=None) -> np.ndarray:
+        return np.array([self.s_eq, 0,0,0])
+
     def _f_bodyVelocity(self, x: np.ndarray, u: np.ndarray) -> np.ndarray:
         p = slice(0,3)
         a = slice(3,6)

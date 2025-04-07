@@ -36,21 +36,21 @@ class Simulator:
         self.mpc.initializeSolver()
 
     def updateControlModel(self, x: np.ndarray, xr_traj: np.ndarray, c: int,
-                           k: int, u_prev: np.ndarray, method: str):
+                           k: int, u_prev: np.ndarray, anchor_pt: str):
         xr = xr_traj[2*k:2*(k+1)]
-        if method in ['lin', 'xeq']:
+        if 'xe' in anchor_pt:
             mask = np.array([1, 0])
         else:
             mask = np.ones_like(x)
         xp = (1-c)*x*mask + c*xr*mask
-        if method in ['uk', 'xeq']:
+        if 'ut' in anchor_pt:
             up = u_prev
         else:
             up = np.zeros(self.m) + self.sys.getEquilibriumTorque(xp[0])
         model = self.sys.affinize(xp, up)
         self.mpc.setModelContinuous2Discrete(model.A, model.B, model.w, self.dt, 1e-8)
 
-    def run(self, c: int, k: int, method: str='lin'):
+    def run(self, anchor_pt: str, c: int, k: int):
         x = self.x0.copy()
         x_hist = [x.copy()]
         xr_hist = [self.getRefTrajectory(0)[:2].copy()]
@@ -64,7 +64,7 @@ class Simulator:
             start = now()
             xr_traj = self.getRefTrajectory(t)
             self.mpc.setReferenceStateTrajectory(xr_traj)
-            self.updateControlModel(x, xr_traj, c, k, u_star, method)
+            self.updateControlModel(x, xr_traj, c, k, u_star, anchor_pt)
             solved = self.mpc.solve(x)
             if solved:
                 u_star = self.mpc.getNextInput()
