@@ -10,11 +10,9 @@ import constants as C
 
 
 def main():
-    load_dir = '/tmp/ampc24/analysis/'
-    load_dir = '/home/mat/data/ampc24/analysis/arm/cos_90_3'
-    load_dir = '/home/mat/data/ampc_case_studies/arm/cos_90_3'
+    default_load_dir = '/tmp/ampc_analysis/'
     desc = 'Plot linearization vs affinization comparison'
-    args = getParsedArgs_plot(load_dir, desc)
+    args = getParsedArgs_plot(default_load_dir, desc)
     plot(args.dir, args.headless)
 
 

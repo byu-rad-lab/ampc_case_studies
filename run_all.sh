@@ -1,6 +1,6 @@
 #!/bin/sh
 
-data_dir=~/data/ampc24/analysis
+data_dir=~/data/ampc_case_studies
 run="python run_analysis.py -H -m -o -S"
 run_arm=0
 run_beam=0

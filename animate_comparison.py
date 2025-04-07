@@ -151,7 +151,7 @@ def animate(load_dir: str, save_path: str, method:str|None, anchor_point: str,
         ani.animate()
 
 def main():
-    default_dir = '/tmp/ampc24/analysis/'
+    default_dir = '/tmp/ampc_analysis/'
     desc = '''
         AniMate stacked AMPC simulations. The top animation is the best affinization and the bottom defaults to be nominal linearization, but a different modeling method can be manually selected.
         '''

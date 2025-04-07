@@ -11,7 +11,7 @@ import constants as C
 
 
 def main():
-    default_dir = '/tmp/ampc24/analysis/'
+    default_dir = '/tmp/ampc_analysis/'
     desc = 'Run full analysis'
     args = getParsedArgs_run(default_dir, desc)
     if args.system == 'arm':
