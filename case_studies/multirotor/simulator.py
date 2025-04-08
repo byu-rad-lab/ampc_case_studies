@@ -99,11 +99,11 @@ def getSimulator(args):
     dt = 0.02
     T = 100
     x0 = np.array([0,0,-20., 0,0,0, 0,0,0])
+    Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64)
     ref_types = ['step', 'wavy', 'ramp1', 'ramp3']
 
     traj_fn = traj.EulerStateTrajectory(T, dt)
     if args.ref_type == 'step':
-        Q = np.array([1,1,100, 1,1,1, 2,2,2.], dtype=np.float64)
         default_params = [1.0, 2.0]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -115,9 +115,6 @@ def getSimulator(args):
         traj_fn.setYawMode(traj.Mode.STEP, [x0[5] + yaw_step])
         print(f'ref = step: pos amplitude = {pos_step:.1f}, yaw amplitude = pi/{params[1]:.1f}')
     elif args.ref_type == 'wavy':
-        # Q = np.array([1,1,10, 1,1,1, 1,1,1.], dtype=np.float64)
-        # Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64)
-        Q = np.array([1,1,10, 1,1,1, 1,1,1.], dtype=np.float64)
         default_params = [1., 5., 2., 6.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -132,8 +129,6 @@ def getSimulator(args):
         print(f'ref = wavy: n/d amp = {amp:.1f}, n/d period = {period:.1f}, ', end='')
         print(f'e vel = {evel:.1f}, y vel = pi/{params[3]:.1f}')
     elif args.ref_type == 'ramp1':
-        # Q = np.array([1,1,10, 1,1,1, 1,1,1.], dtype=np.float64)
-        Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64)
         default_params = [5.0]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -144,8 +139,6 @@ def getSimulator(args):
         traj_fn.setYawMode(traj.Mode.STEP, [x0[5]])
         print(f'ref = ramp1: e vel = {vel:.1f}')
     elif args.ref_type == 'ramp3':
-        Q = np.array([1,1,10, 1,1,1, 2,2,2.], dtype=np.float64) # bad Q
-        # Q = np.array([1,1,1, 1,1,1, 2,2,2.], dtype=np.float64)
         default_params = [3.0]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -163,11 +156,3 @@ def getSimulator(args):
     print('Q =', Q)
 
     return Simulator(tf, dt, T, x0, Q, traj_fn.eval)
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()

@@ -100,7 +100,6 @@ def getSimulator(args):
     reference_type = args.ref_type
     print(f'{reference_type = }: ', end='')
     if reference_type == 'step':
-        # Q = np.array([1.0, 1.0])
         default_params = [30.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -109,9 +108,6 @@ def getSimulator(args):
         traj_fn = traj.Step(xr, T)
         print(f'amplitude = radians({params[0]})')
     elif reference_type == 'cos':
-        # Q = np.array([1.0, 1.0])
-        # Q = np.array([1.0, 0.1])
-        # Q = np.array([1.0, 0.01])
         default_params = [60., 2.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -122,9 +118,6 @@ def getSimulator(args):
         traj_fn = traj.Sinusoidal(amplitude, frequency_hz, offset, T, dt, reference_type)
         print(f'amplitude = radians({params[0]:.1f}), period = tf/{params[1]:.1f}')
     elif reference_type == 'ramp':
-        # Q = np.array([1.0, 1.0])
-        # Q = np.array([1.0, 0.1])
-        # Q = np.array([1.0, 0.01])
         default_params = [10.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)

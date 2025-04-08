@@ -101,7 +101,6 @@ def getSimulator(args):
     reference_type = args.ref_type
     print(f'{reference_type = }: ', end='')
     if reference_type == 'step':
-        # Q = np.array([1.0, 1.0])
         default_params = [0.1]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -109,9 +108,6 @@ def getSimulator(args):
         traj_fn.setZMode(traj.Mode.STEP, [x0[0] + amplitude])
         print(f'amplitude = {params[0]}')
     elif reference_type == 'cos':
-        # Q = np.array([1.0, 1.0])
-        # Q = np.array([1.0, 0.1])
-        # Q = np.array([1.0, 0.01])
         default_params = [.15, 1.]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
@@ -122,9 +118,6 @@ def getSimulator(args):
         traj_fn.setZMode(traj.Mode.SINE, [amplitude, period, phase, offset])
         print(f'amplitude = {params[0]:.1f}, period = tf/{params[1]:.1f}')
     elif reference_type == 'ramp':
-        # Q = np.array([1.0, 1.0])
-        # Q = np.array([1.0, 0.1])
-        # Q = np.array([1.0, 0.01])
         default_params = [.3]
         params = args.params if len(args.params) != 0 else default_params
         assert len(params) == len(default_params)
