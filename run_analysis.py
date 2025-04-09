@@ -18,7 +18,7 @@ def main():
         sim = arm_sim.getSimulator(args)
     elif args.system == 'blockbeam':
         sim = beam_sim.getSimulator(args)
-    elif args.system == 'pendulum':
+    elif args.system in ['cart', 'pendulum']:
         sim = pendulum_sim.getSimulator(args)
     elif args.system == 'multirotor':
         sim = multirotor_sim.getSimulator(args)

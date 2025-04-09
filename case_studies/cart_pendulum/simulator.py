@@ -100,65 +100,71 @@ def getSimulator(args):
 
     traj_fn = traj.CartPendulumTrajectory(T, dt)
     reference_type = args.ref_type
-    if 'z' not in reference_type:
-        Q *= np.array([0, 1, 0, 1]) # can't penalize z or zdot when controlling theta
     print(f'{reference_type = }: ', end='')
-    if reference_type == 'step':
-        default_params = [5]
-        params = args.params if len(args.params) != 0 else default_params
-        assert len(params) == len(default_params)
-        amplitude = np.radians(params[0])
-        traj_fn.setThetaMode(traj.Mode.STEP, [amplitude])
-        traj_fn.setZMode(traj.Mode.STEP, [x0[0]])
-        print(f'amplitude = radians({params[0]})')
-    elif reference_type == 'stepz':
-        default_params = [1]
-        params = args.params if len(args.params) != 0 else default_params
-        assert len(params) == len(default_params)
-        amplitude = params[0]
-        traj_fn.setThetaMode(traj.Mode.STEP, [0.0])
-        traj_fn.setZMode(traj.Mode.STEP, [x0[0] + amplitude])
-        print(f'amplitude = {params[0]}')
-    elif reference_type == 'cos':
-        default_params = [5., 1.]
-        params = args.params if len(args.params) != 0 else default_params
-        assert len(params) == len(default_params)
-        amplitude = np.radians(-params[0])
-        period = tf / params[1]
-        offset = x0[0] - amplitude
-        phase = np.radians(90)
-        traj_fn.setThetaMode(traj.Mode.SINE, [amplitude, period, phase, offset])
-        traj_fn.setZMode(traj.Mode.STEP, [x0[0]])
-        print(f'ref = cos: amplitude = radians({params[0]:.1f}), period = tf/{params[1]:.1f}')
-    elif reference_type == 'cosz':
-        default_params = [1., 1.]
-        params = args.params if len(args.params) != 0 else default_params
-        assert len(params) == len(default_params)
-        amplitude = -params[0]
-        period = tf / params[1]
-        offset = x0[0] - amplitude
-        phase = np.radians(90)
-        traj_fn.setThetaMode(traj.Mode.STEP, [0.0])
-        traj_fn.setZMode(traj.Mode.SINE, [amplitude, period, phase, offset])
-        print(f'ref = cosz: amplitude = {params[0]:.1f}, period = tf/{params[1]:.1f}')
-    elif reference_type == 'ramp':
-        default_params = [5.]
-        params = args.params if len(args.params) != 0 else default_params
-        assert len(params) == len(default_params)
-        vel =  np.radians(params[0])
-        traj_fn.setThetaMode(traj.Mode.LINE, [vel, x0[1]])
-        traj_fn.setZMode(traj.Mode.STEP, [0.0])
-        print(f'ref = ramp: vel = radians({params[0]:.1f})')
-    elif reference_type == 'rampz':
-        default_params = [1]
-        params = args.params if len(args.params) != 0 else default_params
-        assert len(params) == len(default_params)
-        vel =  params[0]
-        traj_fn.setThetaMode(traj.Mode.STEP, [0.0])
-        traj_fn.setZMode(traj.Mode.LINE, [vel, x0[0]])
-        print(f'ref = rampz: vel = {params[0]:.1f}')
+    if args.system == 'cart':
+        Q *= np.array([0, 1, 0, 1]) # can't penalize z or zdot when controlling theta
+        if reference_type == 'step':
+            default_params = [1]
+            params = args.params if len(args.params) != 0 else default_params
+            assert len(params) == len(default_params)
+            amplitude = params[0]
+            traj_fn.setThetaMode(traj.Mode.STEP, [0.0])
+            traj_fn.setZMode(traj.Mode.STEP, [x0[0] + amplitude])
+            print(f'amplitude = {params[0]}')
+        elif reference_type == 'cos':
+            default_params = [1., 1.]
+            params = args.params if len(args.params) != 0 else default_params
+            assert len(params) == len(default_params)
+            amplitude = -params[0]
+            period = tf / params[1]
+            offset = x0[0] - amplitude
+            phase = np.radians(90)
+            traj_fn.setThetaMode(traj.Mode.STEP, [0.0])
+            traj_fn.setZMode(traj.Mode.SINE, [amplitude, period, phase, offset])
+            print(f'ref = cosz: amplitude = {params[0]:.1f}, period = tf/{params[1]:.1f}')
+        elif reference_type == 'ramp':
+            default_params = [1]
+            params = args.params if len(args.params) != 0 else default_params
+            assert len(params) == len(default_params)
+            vel =  params[0]
+            traj_fn.setThetaMode(traj.Mode.STEP, [0.0])
+            traj_fn.setZMode(traj.Mode.LINE, [vel, x0[0]])
+            print(f'ref = rampz: vel = {params[0]:.1f}')
+        else:
+            raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
+
+    elif args.system == 'pendulum':
+        if reference_type == 'step':
+            default_params = [5]
+            params = args.params if len(args.params) != 0 else default_params
+            assert len(params) == len(default_params)
+            amplitude = np.radians(params[0])
+            traj_fn.setThetaMode(traj.Mode.STEP, [amplitude])
+            traj_fn.setZMode(traj.Mode.STEP, [x0[0]])
+            print(f'amplitude = radians({params[0]})')
+        elif reference_type == 'cos':
+            default_params = [5., 1.]
+            params = args.params if len(args.params) != 0 else default_params
+            assert len(params) == len(default_params)
+            amplitude = np.radians(-params[0])
+            period = tf / params[1]
+            offset = x0[0] - amplitude
+            phase = np.radians(90)
+            traj_fn.setThetaMode(traj.Mode.SINE, [amplitude, period, phase, offset])
+            traj_fn.setZMode(traj.Mode.STEP, [x0[0]])
+            print(f'ref = cos: amplitude = radians({params[0]:.1f}), period = tf/{params[1]:.1f}')
+        elif reference_type == 'ramp':
+            default_params = [5.]
+            params = args.params if len(args.params) != 0 else default_params
+            assert len(params) == len(default_params)
+            vel =  np.radians(params[0])
+            traj_fn.setThetaMode(traj.Mode.LINE, [vel, x0[1]])
+            traj_fn.setZMode(traj.Mode.STEP, [0.0])
+            print(f'ref = ramp: vel = radians({params[0]:.1f})')
+        else:
+            raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
     else:
-        raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
+        raise ValueError(f'Unrecognized system type {args.system} - must be cart or pendulum')
 
     return Simulator(tf, dt, T, x0, Q, traj_fn.eval)
 

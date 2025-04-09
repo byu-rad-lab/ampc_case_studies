@@ -2,10 +2,11 @@
 
 data_dir=~/data/ampc_case_studies
 run="python run_analysis.py -H -m -o -S"
-run_arm=0
-run_beam=0
+run_arm=1
+run_beam=1
+run_cart=1
 run_pendulum=1
-run_multirotor=0
+run_multirotor=1
 
 ## Arm
 if [ $run_arm -eq 1 ]; then
@@ -36,24 +37,17 @@ if [ $run_arm -eq 1 ]; then
 fi
 
 
-## Cart Pendulum
-if [ $run_pendulum -eq 1 ]; then
-    sys=pendulum
-    ref=stepz
+## Cart Pendulum (controlling cart)
+if [ $run_cart -eq 1 ]; then
+    sys=cart
+    ref=step
     for amp in 1 2 5 10
     do
         echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
         $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
     done
 
-    ref=step
-    for amp in 5 15 30 45
-    do
-        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
-        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
-    done
-
-    ref=cosz
+    ref=cos
     for amp in 2 5
     do
         for periods in 1 2 3 4
@@ -61,6 +55,24 @@ if [ $run_pendulum -eq 1 ]; then
             echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods"
             $run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods
         done
+    done
+
+    ref=ramp
+    for amp in 2 3 4 5
+    do
+        echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
+    done
+
+
+## Cart Pendulum (controlling pendulum)
+if [ $run_pendulum -eq 1 ]; then
+    sys=pendulum
+    ref=step
+    for amp in 5 15 30 45
+    do
+        echo "$run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
+        $run $sys -D $data_dir/$sys/${ref}_$amp -R $ref $amp
     done
 
     ref=cos
@@ -71,13 +83,6 @@ if [ $run_pendulum -eq 1 ]; then
             echo "$run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods"
             $run $sys -k -D $data_dir/$sys/${ref}_${amp}_$periods -R $ref $amp $periods
         done
-    done
-
-    ref=rampz
-    for amp in 2 3 4 5
-    do
-        echo "$run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp"
-        $run $sys -k -D $data_dir/$sys/${ref}_$amp -R $ref $amp
     done
 
     ref=ramp

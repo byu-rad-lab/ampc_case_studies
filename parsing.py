@@ -13,10 +13,10 @@ def fixSystemString(s: str):
         return 'arm'
     elif s[0] == 'b':
         return 'blockbeam'
-    elif s[0] in ['c', 'p']:
+    elif s[0] in ['p']:
         return 'pendulum'
-    # elif s[0] in ['c']:
-    #     return 'cart'
+    elif s[0] in ['c']:
+        return 'cart'
     elif s[0] == 'm':
         return 'multirotor'
     else:
