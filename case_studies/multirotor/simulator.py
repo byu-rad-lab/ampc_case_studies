@@ -1,7 +1,7 @@
 import numpy as np
 from time import time as now
 from typing import Callable
-import affine_mpc_py as ampc
+import affine_mpc as ampc
 
 from ..multirotor.dynamics import Multirotor
 from . import trajectory as traj
@@ -22,9 +22,10 @@ class Simulator:
         self.time = np.arange(0.0, tf+self.dt, self.dt)
         self.Q = Q.copy()
         self.getRefTrajectory = xref_gen
+        self.param = ampc.Parameterization.linearInterp(self.T, self.p)
 
     def _setupMPC(self):
-        self.mpc = ampc.ImplicitMPC(self.n, self.m, self.T, self.p)
+        self.mpc = ampc.CondensedMPC(self.n, self.m, self.param)
         xp = np.array([0,0,-5, .3,.3,.3, 0.1,0.1,0.1])
         up = np.array([self.sys.s_eq, 0.1,0.1,0.1])
         model = self.sys.affinize(xp, up)

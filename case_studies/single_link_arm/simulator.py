@@ -1,7 +1,7 @@
 import numpy as np
 from time import time as now
 from typing import Callable
-import affine_mpc_py as ampc
+import affine_mpc as ampc
 
 from . import dynamics as arm
 from .. import trajectory as traj
@@ -21,9 +21,10 @@ class Simulator:
         self.time = np.arange(0.0, tf+self.dt, self.dt)
         self.Q = Q.copy()
         self.getRefTrajectory = xref_gen
+        self.param = ampc.Parameterization.linearInterp(self.T, self.p)
 
     def _setupMPC(self):
-        self.mpc = ampc.ImplicitMPC(self.n, self.m, self.T, self.p)
+        self.mpc = ampc.CondensedMPC(self.n, self.m, self.param)
         xp = np.array([np.radians(30), 0.0])
         up = np.array([0.0]) + self.sys.getEquilibriumTorque(xp[0])
         model = self.sys.affinize(xp, up)
@@ -124,7 +125,7 @@ def getSimulator(args):
         s = params[0]
         vel = 2*np.pi / s
         traj_fn = traj.Ramp(velocity=vel, offset=x0[0], horizon=T, dt=dt)
-        print(f'ref = ramp: vel = 2pi/{s[0]:.1f}')
+        print(f'ref = ramp: vel = 2pi/{s:.1f}')
     else:
         raise ValueError(f'Unrecognized reference type {args.ref_type} - must be in {ref_types}')
 
