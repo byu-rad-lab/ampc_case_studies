@@ -36,3 +36,12 @@ pip install -r requirements.txt
   - Performs a summary analysis on all the data from `run_all.sh`.
 - `summary_plots.py`
   - Generates plots used in the paper after running `summary_analysis.py`
+
+Most of the Python scripts use `argparse` so you can use `-h` to see how to use them.
+For example,
+
+```sh
+python run_analysis.py -h
+```
+
+You can also look at `run_all.sh` to see how I ran all the experiments for the paper.
