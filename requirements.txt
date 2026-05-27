@@ -1,0 +1,6 @@
+numpy
+affine_mpc
+matplotlib
+pyqt5
+tqdm
+tabulate

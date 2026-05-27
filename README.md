@@ -1,17 +1,31 @@
 # AMPC Case Studies
+
 This repository contains the code for the case studies that go along with a paper submission.
 
 ## Dependencies
+
 This repo requires the following python packages to be on the python path:
+
 - affine_mpc
   - A [repo](https://github.com/byu-rad-lab/affine_mpc) released with the paper submission to perform MPC
 - numpy
 - matplotlib
-- PyQt5 (or newer)
+- PyQt5
 - tqdm
 - tabulate
 
+#### Set up Virtual Environment
+
+(This assumes a Linux development environment)
+
+```sh
+python -m venv .venv
+source ./.venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## File Overview
+
 - `run_analysis.py`
   - Runs an approximation point analysis for a single system and reference trajectory combination.
 - `plot_analysis.py`
@@ -19,6 +33,6 @@ This repo requires the following python packages to be on the python path:
 - `run_all.sh`
   - Runs `run_analysis.py` for each system and reference trajectory combination used in the paper.
 - `summary_analysis.py`
-  - Performs a summary analysis on all of the data from `run_all.sh`.
+  - Performs a summary analysis on all the data from `run_all.sh`.
 - `summary_plots.py`
   - Generates plots used in the paper after running `summary_analysis.py`
