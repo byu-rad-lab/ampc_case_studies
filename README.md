@@ -45,3 +45,8 @@ python run_analysis.py -h
 ```
 
 You can also look at `run_all.sh` to see how I ran all the experiments for the paper.
+
+## Experiment Data
+
+The experiment data used in the paper submission currently can be found [here](https://byu.box.com/s/c34yvr86718yohrkvozcqby3uh6jni58).
+This location may change if the need for a more permanent location arises.
